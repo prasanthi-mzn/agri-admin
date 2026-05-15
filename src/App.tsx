@@ -7,6 +7,7 @@ import SignupPage from './pages/Login/SignupPage';
 import ResetPassword from './pages/Login/ResetPassword';
 import Dashboard from './pages/Dashboard/Dashboard';
 import DealerAppSettings from './pages/DealerAppSettings/DealerAppSettings';
+import { HashRouter } from 'react-router-dom';
 
 // Mock Dashboard Components
 
@@ -17,7 +18,7 @@ function App() {
 
   return (
     <ThemeProvider>
-      <BrowserRouter>
+      <HashRouter>
         <Routes>
           {/* Login Route */}
           <Route 
@@ -51,7 +52,7 @@ function App() {
           {/* Redirect any unknown routes to login */}
           <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
-      </BrowserRouter>
+      </HashRouter>
     </ThemeProvider>
   );
 }
