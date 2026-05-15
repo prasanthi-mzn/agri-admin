@@ -1,0 +1,550 @@
+@import "tailwindcss";
+@theme {
+  /* This creates the 'bg-common-btn-bg' utility */
+  --color-common-btn-bg: #ea570c; 
+  
+  /* Optional: Add a hover variant too */
+  --color-common-btn-hover: #e4753e;
+}
+
+/* Light Theme (Default) */
+:root,
+[data-theme="light"] {
+  --text: #6b6375;
+  --text-h: #08060d;
+  --bg: #fff;
+  --widget-bg: #fff;
+  --common-btn-bg: #ea570c;
+  --common-btn-hover: #e4753e;
+  --border: #e5e4e7;
+  --code-bg: #f4f3ec;
+  --accent: #aa3bff;
+  --accent-bg: rgba(170, 59, 255, 0.1);
+  --accent-border: rgba(170, 59, 255, 0.5);
+  --social-bg: rgba(244, 243, 236, 0.5);
+  --shadow: rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+  --text: #e5e7eb;
+  --text-h: #f3f4f6;
+  --bg: #111827;
+  --widget-bg: #1f2937;
+  --common-btn-bg: #1d4ed8;
+  --common-btn-hover: #1e40af;
+  --border: #374151;
+  --code-bg: #0f172a;
+  --accent: #c084fc;
+  --accent-bg: rgba(192, 132, 252, 0.15);
+  --accent-border: rgba(192, 132, 252, 0.5);
+  --social-bg: rgba(31, 41, 55, 0.5);
+  --shadow: rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+}
+
+/* Neon Theme */
+[data-theme="neon"] {
+  --text: #00ff00;
+  --text-h: #00ffff;
+  --bg: #0a0e27;
+  --widget-bg: #0f1438;
+  --common-btn-bg: #ff006e;
+  --common-btn-hover: #fb5607;
+  --border: #00ff88;
+  --code-bg: #000814;
+  --accent: #ffbe0b;
+  --accent-bg: rgba(255, 190, 11, 0.15);
+  --accent-border: rgba(255, 190, 11, 0.5);
+  --social-bg: rgba(0, 255, 136, 0.1);
+  --shadow: rgba(0, 255, 136, 0.3) 0 10px 15px -3px, rgba(0, 255, 136, 0.1) 0 4px 6px -2px;
+}
+
+/* Pink Theme */
+[data-theme="pink"] {
+  --text: #f1a6e4;
+  --text-h: #ff1493;
+  --bg: #1a0a1f;
+  --widget-bg: #2d1b3d;
+  --common-btn-bg: #ff1493;
+  --common-btn-hover: #ff69b4;
+  --border: #d946a6;
+  --code-bg: #0f0615;
+  --accent: #f472b6;
+  --accent-bg: rgba(244, 114, 182, 0.15);
+  --accent-border: rgba(244, 114, 182, 0.5);
+  --social-bg: rgba(217, 70, 166, 0.1);
+  --shadow: rgba(217, 70, 166, 0.3) 0 10px 15px -3px, rgba(217, 70, 166, 0.1) 0 4px 6px -2px;
+}
+
+:root {
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  font: 18px/145% var(--sans);
+  letter-spacing: 0.18px;
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  @media (max-width: 1024px) {
+    font-size: 16px;
+  }
+}
+
+#root {
+  /* width: 1126px; */
+  max-width: 100%;
+  margin: 0 auto;
+  text-align: center;
+  border-inline: 1px solid var(--border);
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+h1,
+h2 {
+  font-family: var(--heading);
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+h1 {
+  font-size: 56px;
+  letter-spacing: -1.68px;
+  margin: 32px 0;
+  @media (max-width: 1024px) {
+    font-size: 36px;
+    margin: 20px 0;
+  }
+}
+h2 {
+  font-size: 24px;
+  line-height: 118%;
+  letter-spacing: -0.24px;
+  margin: 0 0 8px;
+  @media (max-width: 1024px) {
+    font-size: 20px;
+  }
+}
+p {
+  margin: 0;
+}
+
+code,
+.counter {
+  font-family: var(--mono);
+  display: inline-flex;
+  border-radius: 4px;
+  color: var(--text-h);
+}
+
+code {
+  font-size: 15px;
+  line-height: 135%;
+  padding: 4px 8px;
+  background: var(--code-bg);
+}
+
+/* Theme-aware component styles */
+html[data-theme="neon"] {
+  color-scheme: dark;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+html[data-theme="pink"] {
+  color-scheme: dark;
+}
+
+html[data-theme="light"] {
+  color-scheme: light;
+}
+
+/* ===== DARK THEME STYLES ===== */
+html[data-theme="dark"] header,
+html[data-theme="dark"] aside {
+  background-color: #111827 !important;
+  border-color: #374151 !important;
+  color: #e5e7eb;
+}
+
+html[data-theme="dark"] main {
+  background-color: #111827 !important;
+  color: #e5e7eb;
+}
+
+html[data-theme="dark"] .bg-white,
+html[data-theme="dark"] form {
+  background-color: #1f2937 !important;
+  color: #e5e7eb !important;
+}
+
+html[data-theme="dark"] input,
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea {
+  background-color: #0f172a !important;
+  color: #e5e7eb !important;
+  border-color: #374151 !important;
+}
+
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder,
+html[data-theme="dark"] select {
+  color: #9ca3af !important;
+}
+
+html[data-theme="dark"] label {
+  color: #e5e7eb !important;
+}
+
+html[data-theme="dark"] h1,
+html[data-theme="dark"] h2,
+html[data-theme="dark"] h3,
+html[data-theme="dark"] p {
+  color: #e5e7eb !important;
+}
+
+html[data-theme="dark"] button:not(.bg-common-btn-bg):not(.hover\:bg-common-btn-hover) {
+  color: #e5e7eb !important;
+}
+
+/* ===== NEON THEME STYLES ===== */
+html[data-theme="neon"] header,
+html[data-theme="neon"] aside {
+  background-color: #0a0e27 !important;
+  border-color: #00ff88 !important;
+  color: #00ff00;
+}
+
+html[data-theme="neon"] main {
+  background-color: #0a0e27 !important;
+  color: #00ff00;
+}
+
+html[data-theme="neon"] .bg-white,
+html[data-theme="neon"] form {
+  background-color: #0f1438 !important;
+  color: #00ff00 !important;
+  border-color: #00ff88 !important;
+}
+
+html[data-theme="neon"] input,
+html[data-theme="neon"] select,
+html[data-theme="neon"] textarea {
+  background-color: #000814 !important;
+  color: #00ff00 !important;
+  border-color: #00ff88 !important;
+}
+
+html[data-theme="neon"] input::placeholder,
+html[data-theme="neon"] textarea::placeholder,
+html[data-theme="neon"] select {
+  color: #00ff88 !important;
+}
+
+html[data-theme="neon"] label {
+  color: #00ff00 !important;
+}
+
+html[data-theme="neon"] h1,
+html[data-theme="neon"] h2,
+html[data-theme="neon"] h3 {
+  color: #00ffff !important;
+}
+
+html[data-theme="neon"] p {
+  color: #00ff00 !important;
+}
+
+html[data-theme="neon"] button:not(.bg-common-btn-bg):not(.hover\:bg-common-btn-hover) {
+  color: #00ff00 !important;
+}
+
+/* ===== PINK THEME STYLES ===== */
+html[data-theme="pink"] header,
+html[data-theme="pink"] aside {
+  background-color: #1a0a1f !important;
+  border-color: #d946a6 !important;
+  color: #f1a6e4;
+}
+
+html[data-theme="pink"] main {
+  background-color: #1a0a1f !important;
+  color: #f1a6e4;
+}
+
+html[data-theme="pink"] .bg-white,
+html[data-theme="pink"] form {
+  background-color: #2d1b3d !important;
+  color: #f1a6e4 !important;
+  border-color: #d946a6 !important;
+}
+
+html[data-theme="pink"] input,
+html[data-theme="pink"] select,
+html[data-theme="pink"] textarea {
+  background-color: #0f0615 !important;
+  color: #f1a6e4 !important;
+  border-color: #d946a6 !important;
+}
+
+html[data-theme="pink"] input::placeholder,
+html[data-theme="pink"] textarea::placeholder,
+html[data-theme="pink"] select {
+  color: #d946a6 !important;
+}
+
+html[data-theme="pink"] label {
+  color: #f1a6e4 !important;
+}
+
+html[data-theme="pink"] h1,
+html[data-theme="pink"] h2,
+html[data-theme="pink"] h3 {
+  color: #ff1493 !important;
+}
+
+html[data-theme="pink"] p {
+  color: #f1a6e4 !important;
+}
+
+html[data-theme="pink"] button:not(.bg-common-btn-bg):not(.hover\:bg-common-btn-hover) {
+  color: #f1a6e4 !important;
+}
+
+/* Common button backgrounds */
+.bg-common-btn-bg {
+  background-color: var(--common-btn-bg) !important;
+}
+
+.hover\:bg-common-btn-hover:hover {
+  background-color: var(--common-btn-hover) !important;
+}
+
+/* Ensure cards/widgets have the right background */
+.rounded-lg,
+[class*="shadow"],
+.bg-gray-50 {
+  background-color: var(--widget-bg) !important;
+  color: var(--text) !important;
+}
+
+/* Style any text content to ensure readability */
+html[data-theme="dark"] span,
+html[data-theme="dark"] div {
+  color: inherit;
+}
+
+html[data-theme="neon"] span,
+html[data-theme="neon"] div {
+  color: inherit;
+}
+
+html[data-theme="pink"] span,
+html[data-theme="pink"] div {
+  color: inherit;
+}
+
+/* Additional styling for dark theme */
+html[data-theme="dark"] .bg-gray-100,
+html[data-theme="dark"] .bg-gray-200 {
+  background-color: #1f2937 !important;
+  color: #e5e7eb;
+}
+
+html[data-theme="dark"] .text-gray-700,
+html[data-theme="dark"] .text-gray-600,
+html[data-theme="dark"] .text-gray-500 {
+  color: #d1d5db !important;
+}
+
+html[data-theme="dark"] .border-gray-200,
+html[data-theme="dark"] .border-gray-300 {
+  border-color: #4b5563 !important;
+}
+
+/* Additional styling for neon theme */
+html[data-theme="neon"] .bg-gray-100,
+html[data-theme="neon"] .bg-gray-200 {
+  background-color: #0f1438 !important;
+  color: #00ff00;
+}
+
+html[data-theme="neon"] .text-gray-700,
+html[data-theme="neon"] .text-gray-600,
+html[data-theme="neon"] .text-gray-500 {
+  color: #00ff88 !important;
+}
+
+html[data-theme="neon"] .border-gray-200,
+html[data-theme="neon"] .border-gray-300 {
+  border-color: #00ff88 !important;
+}
+
+/* Additional styling for pink theme */
+html[data-theme="pink"] .bg-gray-100,
+html[data-theme="pink"] .bg-gray-200 {
+  background-color: #2d1b3d !important;
+  color: #f1a6e4;
+}
+
+html[data-theme="pink"] .text-gray-700,
+html[data-theme="pink"] .text-gray-600,
+html[data-theme="pink"] .text-gray-500 {
+  color: #d946a6 !important;
+}
+
+html[data-theme="pink"] .border-gray-200,
+html[data-theme="pink"] .border-gray-300 {
+  border-color: #d946a6 !important;
+}
+
+/* Dark theme specific styles for common usage */
+html[data-theme="dark"] .text-green-600,
+html[data-theme="dark"] .text-blue-600 {
+  color: #60a5fa !important;
+}
+
+html[data-theme="dark"] .hover\:text-green-700:hover,
+html[data-theme="dark"] .hover\:text-blue-700:hover {
+  color: #93c5fd !important;
+}
+
+html[data-theme="dark"] .bg-blue-50,
+html[data-theme="dark"] .bg-green-50 {
+  background-color: #0f172a !important;
+}
+
+/* Neon theme specific styles */
+html[data-theme="neon"] .text-green-600,
+html[data-theme="neon"] .text-blue-600 {
+  color: #00ff88 !important;
+}
+
+html[data-theme="neon"] .hover\:text-green-700:hover,
+html[data-theme="neon"] .hover\:text-blue-700:hover {
+  color: #00ffff !important;
+}
+
+html[data-theme="neon"] .bg-blue-50,
+html[data-theme="neon"] .bg-green-50 {
+  background-color: #000814 !important;
+}
+
+/* Pink theme specific styles */
+html[data-theme="pink"] .text-green-600,
+html[data-theme="pink"] .text-blue-600 {
+  color: #d946a6 !important;
+}
+
+html[data-theme="pink"] .hover\:text-green-700:hover,
+html[data-theme="pink"] .hover\:text-blue-700:hover {
+  color: #ff1493 !important;
+}
+
+html[data-theme="pink"] .bg-blue-50,
+html[data-theme="pink"] .bg-green-50 {
+  background-color: #0f0615 !important;
+}
+
+/* ===== MENU ITEM STYLING ===== */
+/* Light Theme Menu Items */
+.menu-item-hover {
+  color: #4a4a4a;
+  transition: all 0.3s ease-in-out;
+}
+
+.menu-item-hover:hover {
+  background-color: #fff4eb;
+  color: #ea570c;
+  border-left: 3px solid #ea570c;
+  padding-left: 13px;
+}
+
+.menu-item-active {
+  background-color: #fff0e6;
+  color: #c9440a;
+  font-weight: 600;
+  border-left: 3px solid #ea570c;
+  padding-left: 13px;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Dark Theme Menu Items */
+html[data-theme="dark"] .menu-item-hover {
+  color: #d1d5db;
+  transition: all 0.3s ease-in-out;
+}
+
+html[data-theme="dark"] .menu-item-hover:hover {
+  background-color: #1e3a8a;
+  color: #93c5fd;
+  border-left: 3px solid #60a5fa;
+  padding-left: 13px;
+}
+
+html[data-theme="dark"] .menu-item-active {
+  background-color: #1e40af;
+  color: #dbeafe;
+  font-weight: 600;
+  border-left: 3px solid #60a5fa;
+  padding-left: 13px;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Neon Theme Menu Items */
+html[data-theme="neon"] .menu-item-hover {
+  color: #00ff00;
+  transition: all 0.3s ease-in-out;
+}
+
+html[data-theme="neon"] .menu-item-hover:hover {
+  background-color: #0f1438;
+  color: #00ffff;
+  border-left: 3px solid #00ff88;
+  padding-left: 13px;
+}
+
+html[data-theme="neon"] .menu-item-active {
+  background-color: #000814;
+  color: #00ff00;
+  font-weight: 600;
+  border-left: 3px solid #00ff88;
+  padding-left: 13px;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Pink Theme Menu Items */
+html[data-theme="pink"] .menu-item-hover {
+  color: #d946a6;
+  transition: all 0.3s ease-in-out;
+}
+
+html[data-theme="pink"] .menu-item-hover:hover {
+  background-color: #2d1b3d;
+  color: #ff1493;
+  border-left: 3px solid #d946a6;
+  padding-left: 13px;
+}
+
+html[data-theme="pink"] .menu-item-active {
+  background-color: #1a0a1f;
+  color: #ff1493;
+  font-weight: 600;
+  border-left: 3px solid #d946a6;
+  padding-left: 13px;
+  transition: all 0.3s ease-in-out;
+}
