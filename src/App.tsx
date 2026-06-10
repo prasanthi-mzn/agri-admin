@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useState } from 'react';
 import { ThemeProvider } from './context/ThemeContext';
 import Layout from './components/Layout/Layout';
@@ -7,11 +7,9 @@ import SignupPage from './pages/Login/SignupPage';
 import ResetPassword from './pages/Login/ResetPassword';
 import Dashboard from './pages/Dashboard/Dashboard';
 import DealerAppSettings from './pages/DealerAppSettings/DealerAppSettings';
+import DealerManagement from './pages/DealerManagement/DealerManagement';
+import Inventory from './pages/Inventory/Inventory';
 import { HashRouter } from 'react-router-dom';
-
-// Mock Dashboard Components
-
-const Inventory = () => <h2 className="text-2xl font-bold">Inventory Management</h2>;
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -45,6 +43,7 @@ function App() {
           >
             <Route index element={<Dashboard />} />
             <Route path="inventory" element={<Inventory />} />
+            <Route path="dealers" element={<DealerManagement />} />
             <Route path="dealer-app-settings" element={<DealerAppSettings />} />
             {/* Add other sub-routes here */}
           </Route>

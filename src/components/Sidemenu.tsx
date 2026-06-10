@@ -7,12 +7,10 @@
   Settings,  
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import { useTheme } from '../context/ThemeContext';
 import Logo from '../assets/logo2.png'
 
 export const SideMenu = () => {
   const location = useLocation();
-  const { theme } = useTheme();
 
     const menuItems = [
     { name: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
@@ -31,7 +29,7 @@ export const SideMenu = () => {
   };
 
   const getMenuItemClass = (path: string) => {
-    const baseClass = "flex items-center justify-start px-4 py-3 rounded-lg transition-colors font-medium text-left";
+    const baseClass = "flex items-center justify-start px-4 py-3 rounded-lg transition-colors font-medium text-left menu-item";
     const isMenuActive = isActive(path);
     
     if (isMenuActive) {
@@ -42,18 +40,18 @@ export const SideMenu = () => {
   };
   
   return(
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
-          <img src={Logo} />
-        <nav className="flex-1 px-4 space-y-1">
+      <aside className="sidemenu-container">
+          <img src={Logo} className="sidemenu-logo" />
+        <nav className="sidemenu-nav">
           {menuItems.map((item) => (
             <Link
               key={item.name}
               to={item.path}
               className={getMenuItemClass(item.path)}
             >
-              <span className="flex items-center justify-start gap-3 w-full">
-                {item.icon}
-                <span>{item.name}</span>
+              <span className="menu-item-content">
+                <span className="menu-item-icon">{item.icon}</span>
+                <span className="menu-item-text">{item.name}</span>
               </span>
             </Link>
           ))}

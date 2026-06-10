@@ -15,7 +15,7 @@ export const ThemeSelector = () => {
   const isDarkMode = theme === 'dark' || theme === 'neon' || theme === 'pink';
 
   return (
-    <div className={`flex items-center gap-2 p-1 rounded-lg ${
+    <div className={`flex w-full items-center justify-center gap-1 rounded-lg p-1 sm:w-auto sm:gap-2 ${
       isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
     }`}>
       {themes.map(({ id, label, icon: Icon }) => (
@@ -23,14 +23,14 @@ export const ThemeSelector = () => {
           key={id}
           onClick={() => setTheme(id as typeof id)}
           title={label}
-          className={`p-2 rounded-md transition-all ${
+          className={`rounded-md p-1.5 transition-all sm:p-2 ${
             theme === id
               ? isDarkMode ? 'bg-gray-600 shadow-md' : 'bg-white shadow-md'
               : isDarkMode ? 'bg-transparent hover:bg-gray-600' : 'bg-transparent hover:bg-gray-200'
           }`}
         >
           <Icon 
-            size={18} 
+            size={16} 
             className={theme === id 
               ? isDarkMode ? 'text-white' : 'text-gray-900'
               : isDarkMode ? 'text-gray-300' : 'text-gray-600'

@@ -27,13 +27,13 @@ const DealerAppSettings = () => {
   };
 
   return (
-    <div className="p-8">
-      <div className="flex items-center gap-3 mb-8">
-        <Settings className="text-green-600" size={32} />
-        <h1 className="text-3xl font-bold text-gray-900">Dealer App Settings</h1>
+    <div className="space-y-6 text-left min-w-0">
+      <div className="flex items-center gap-3">
+        <Settings className="text-green-600 shrink-0" size={30} />
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Dealer App Settings</h1>
       </div>
 
-      <form onSubmit={handleApply} className="bg-white rounded-lg shadow-md p-8 max-w-md">
+      <form onSubmit={handleApply} className="bg-white rounded-lg shadow-md p-4 sm:p-6 lg:p-8 w-full max-w-md">
         {message && (
           <div className="mb-6 bg-green-50 border border-green-200 text-green-700 p-4 rounded-lg">
             {message}
@@ -69,7 +69,7 @@ const DealerAppSettings = () => {
         <button
           type="submit"
           disabled={isApplying}
-          className="w-full mt-6 bg-common-btn-bg hover:bg-common-btn-hover text-white font-bold py-3 rounded-lg transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full mt-6 font-bold py-3 rounded-lg transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isApplying ? 'Applying...' : 'Apply'}
         </button>

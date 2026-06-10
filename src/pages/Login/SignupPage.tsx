@@ -56,22 +56,22 @@ const SignupPage = ({ onSignup }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
-        <div className="text-center mb-10">
-          <img src={Logo} alt="Logo" className="w-24 h-24 mx-auto" />
-          <h2 className="text-2xl font-extrabold text-gray-900 mt-4">Create Account</h2>
-          <p className="text-gray-500 text-sm mt-2">Sign up to get started</p>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-3 py-6 sm:px-4">
+      <div className="max-w-sm w-full bg-white rounded-xl shadow-xl p-5 sm:p-6">
+        <div className="text-center mb-7">
+          <img src={Logo} alt="Logo" className="w-20 h-20 mx-auto" />
+          <h2 className="text-xl font-extrabold text-gray-900 mt-3">Create Account</h2>
+          <p className="text-gray-500 text-xs mt-1.5">Sign up to get started</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2 text-left">Full Name</label>
+            <label className="block text-xs font-semibold text-gray-700 mb-1.5 text-left">Full Name</label>
             <input 
               type="text" 
               name="fullName"
               required
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+              className="w-full px-3 py-2.5 text-sm rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
               placeholder="John Doe"
               value={formData.fullName}
               onChange={handleChange}
@@ -79,12 +79,12 @@ const SignupPage = ({ onSignup }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2 text-left">Email Address</label>
+            <label className="block text-xs font-semibold text-gray-700 mb-1.5 text-left">Email Address</label>
             <input 
               type="email" 
               name="email"
               required
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+              className="w-full px-3 py-2.5 text-sm rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
               placeholder="admin@agriapp.com"
               value={formData.email}
               onChange={handleChange}
@@ -92,12 +92,12 @@ const SignupPage = ({ onSignup }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2 text-left">Password</label>
+            <label className="block text-xs font-semibold text-gray-700 mb-1.5 text-left">Password</label>
             <input 
               type="password" 
               name="password"
               required
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+              className="w-full px-3 py-2.5 text-sm rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
               placeholder="••••••••"
               value={formData.password}
               onChange={handleChange}
@@ -105,30 +105,30 @@ const SignupPage = ({ onSignup }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2 text-left">Confirm Password</label>
+            <label className="block text-xs font-semibold text-gray-700 mb-1.5 text-left">Confirm Password</label>
             <input 
               type="password" 
               name="confirmPassword"
               required
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+              className="w-full px-3 py-2.5 text-sm rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
               placeholder="••••••••"
               value={formData.confirmPassword}
               onChange={handleChange}
             />
           </div>
 
-          {error && <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">{error}</div>}
-          {message && <div className="text-green-600 text-sm bg-green-50 p-3 rounded-lg">{message}</div>}
+          {error && <div className="text-red-600 text-xs bg-red-50 p-2.5 rounded-lg">{error}</div>}
+          {message && <div className="text-green-600 text-xs bg-green-50 p-2.5 rounded-lg">{message}</div>}
 
           <button 
             type="submit"
-            className="w-full bg-common-btn-bg hover:bg-common-btn-hover text-white font-bold py-3 rounded-lg transition-colors shadow-lg"
+            className="w-full bg-common-btn-bg hover:bg-common-btn-hover text-white text-sm font-bold py-2.5 rounded-lg transition-colors shadow-lg"
           >
             Sign Up
           </button>
         </form>
 
-        <div className="mt-6 text-center text-sm">
+        <div className="mt-4 text-center text-xs">
           <p className="text-gray-600">
             Already have an account?{' '}
             <button
