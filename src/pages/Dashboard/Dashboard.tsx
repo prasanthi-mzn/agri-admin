@@ -1,4 +1,4 @@
-import React from 'react';
+import { useEffect, useState } from 'react';
 import { 
   Users, 
   UserRound,
@@ -8,12 +8,30 @@ import {
   ArrowUpRight, 
   ArrowDownRight 
 } from 'lucide-react';
+import dashboardService from '../../services/dashboardService';
+import type { DashboardResponse } from '../../services/dashboardService';
+
+const formatCount = (value?: number) => {
+  if (typeof value !== 'number') return '-';
+  return new Intl.NumberFormat('en-IN').format(value);
+};
 
 const Dashboard = () => {
-  // Mock data for the cards
+  const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(null);
+  const [loadingDashboard, setLoadingDashboard] = useState(true);
+  const [dashboardError, setDashboardError] = useState('');
+
+  useEffect(() => {
+    dashboardService
+      .fetchDashboard()
+      .then((data) => setDashboardData(data))
+      .catch((err) => setDashboardError(err instanceof Error ? err.message : 'Failed to load dashboard data'))
+      .finally(() => setLoadingDashboard(false));
+  }, []);
+
   const stats = [
-    { name: 'Total Dealers', value: '1,284', icon: <Users className="text-blue-600" />, change: '+12%', positive: true },
-    { name: 'Total Customers', value: '8,742', icon: <UserRound className="text-teal-600" />, change: '+9.6%', positive: true },
+    { name: 'Total Vendors', value: loadingDashboard ? 'Loading...' : formatCount(dashboardData?.total_vendors), icon: <Users className="text-blue-600" />, change: '', positive: true },
+    { name: 'Total Customers', value: loadingDashboard ? 'Loading...' : formatCount(dashboardData?.total_customers), icon: <UserRound className="text-teal-600" />, change: '', positive: true },
     { name: 'Active Inventory', value: '43,520', icon: <Package className="text-green-600" />, change: '+3.4%', positive: true },
     { name: 'Monthly Orders', value: '856', icon: <ShoppingBag className="text-orange-600" />, change: '-2.1%', positive: false },
     { name: 'Revenue', value: '₹4.2M', icon: <TrendingUp className="text-purple-600" />, change: '+18%', positive: true },
@@ -32,6 +50,7 @@ const Dashboard = () => {
       <div>
         <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Dashboard Overview</h1>
         <p className="text-gray-500">Welcome back, Admin. Here is what's happening today.</p>
+        {dashboardError && <div className="mt-2 text-sm text-red-600">{dashboardError}</div>}
       </div>
 
       {/* Stats Grid */}
@@ -40,10 +59,12 @@ const Dashboard = () => {
           <div key={item.name} className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100 min-w-0">
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-gray-50 rounded-xl">{item.icon}</div>
-              <span className={`flex items-center text-sm font-medium ${item.positive ? 'text-green-600' : 'text-red-600'}`}>
-                {item.change}
-                {item.positive ? <ArrowUpRight size={16} /> : <ArrowDownRight size={16} />}
-              </span>
+              {item.change && (
+                <span className={`flex items-center text-sm font-medium ${item.positive ? 'text-green-600' : 'text-red-600'}`}>
+                  {item.change}
+                  {item.positive ? <ArrowUpRight size={16} /> : <ArrowDownRight size={16} />}
+                </span>
+              )}
             </div>
             <h3 className="text-gray-500 text-sm font-medium">{item.name}</h3>
             <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{item.value}</p>

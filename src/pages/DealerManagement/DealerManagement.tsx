@@ -1,183 +1,213 @@
-import React, { useMemo, useState } from 'react';
-import { Search, Users } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { CheckCircle2, Loader2, Pencil, Save, Search, ShieldCheck, UserCheck, Users, X } from 'lucide-react';
+import Checkbox from '@mui/material/Checkbox';
+import AppTextField from '../../components/AppTextField';
+import userService from '../../services/userService';
+import type { FormEvent } from 'react';
+import type { UpdateUserPayload, UserDetails, UserItem } from '../../services/userService';
 
-type RegistrationStatus = 'Yes' | 'No';
-
-type DealerUser = {
-  id: string;
-  name: string;
-  userType: string;
-  phone: string;
-  registered: RegistrationStatus;
-  companyName: string;
-  companyRegNumber: string;
-  companyAddress: string;
-  companyPhone: string;
-  companyEmail: string;
-  gstNumber: string;
-  initials: string;
+const emptyForm: UpdateUserPayload = {
+  first_name: '',
+  last_name: '',
+  mobile_number: '',
+  address: '',
+  zipcode: '',
+  city: '',
+  district: '',
+  state: '',
+  is_admin: false,
 };
 
-type ColumnFilters = {
-  name: string;
-  userType: string;
-  phone: string;
-  registered: string;
-  companyName: string;
-  companyRegNumber: string;
-  companyAddress: string;
-  companyPhone: string;
-  companyEmail: string;
-  gstNumber: string;
+const primaryButtonClass =
+  'inline-flex items-center gap-2 rounded-md bg-common-btn-bg px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-common-btn-hover disabled:cursor-not-allowed disabled:opacity-70';
+
+const secondaryButtonClass =
+  'inline-flex items-center gap-2 rounded-md border border-[var(--border)] bg-[var(--widget-bg)] px-3 py-2 text-sm font-medium text-[var(--text)] transition-colors hover:bg-[var(--code-bg)] disabled:cursor-not-allowed disabled:opacity-50';
+
+const getUserForm = (user: UserDetails): UpdateUserPayload => ({
+  first_name: user.first_name || '',
+  last_name: user.last_name || '',
+  mobile_number: user.mobile_number || '',
+  address: user.address || '',
+  zipcode: user.zipcode || '',
+  city: user.city || '',
+  district: user.district || '',
+  state: user.state || '',
+  is_admin: Boolean(user.is_admin),
+});
+
+const valueOrDash = (value?: string | number | boolean | null) => {
+  if (value === true) return 'Yes';
+  if (value === false) return 'No';
+  return value || '-';
 };
 
-const dealerUsers: DealerUser[] = [
-  {
-    id: 'USR-001',
-    name: 'Ramesh Kumar',
-    userType: 'Dealer',
-    phone: '+91 98765 43210',
-    registered: 'Yes',
-    companyName: 'Kumar Agro Traders',
-    companyRegNumber: 'KAT-2026-001',
-    companyAddress: 'Market Yard Road, Pune, Maharashtra',
-    companyPhone: '+91 20 2456 7812',
-    companyEmail: 'contact@kumaragro.in',
-    gstNumber: '27ABCDE1234F1Z5',
-    initials: 'RK',
-  },
-  {
-    id: 'USR-002',
-    name: 'Anita Sharma',
-    userType: 'Vendor',
-    phone: '+91 99887 76655',
-    registered: 'Yes',
-    companyName: 'Sharma Farm Supply',
-    companyRegNumber: 'SFS-2025-118',
-    companyAddress: 'Sikar Road, Jaipur, Rajasthan',
-    companyPhone: '+91 141 267 5544',
-    companyEmail: 'sales@sharmafarmsupply.in',
-    gstNumber: '08BCDEF2345G1Z2',
-    initials: 'AS',
-  },
-  {
-    id: 'USR-003',
-    name: 'Imran Shaikh',
-    userType: 'Distributor',
-    phone: '+91 91234 56780',
-    registered: 'No',
-    companyName: 'Green Field Dealers',
-    companyRegNumber: 'Pending',
-    companyAddress: 'Niphad Road, Nashik, Maharashtra',
-    companyPhone: '+91 253 244 1190',
-    companyEmail: 'info@greenfielddealers.in',
-    gstNumber: 'Pending',
-    initials: 'IS',
-  },
-  {
-    id: 'USR-004',
-    name: 'Meera Patel',
-    userType: 'Dealer',
-    phone: '+91 90909 11223',
-    registered: 'Yes',
-    companyName: 'Patel Krishi Kendra',
-    companyRegNumber: 'PKK-2024-078',
-    companyAddress: 'Ring Road, Surat, Gujarat',
-    companyPhone: '+91 261 289 3301',
-    companyEmail: 'office@patelkrishi.in',
-    gstNumber: '24CDEFG3456H1Z7',
-    initials: 'MP',
-  },
-  {
-    id: 'USR-005',
-    name: 'Suresh Reddy',
-    userType: 'Vendor',
-    phone: '+91 93456 78901',
-    registered: 'No',
-    companyName: 'Reddy Agro Mart',
-    companyRegNumber: 'Pending',
-    companyAddress: 'Lakshmipuram Main Road, Guntur, Andhra Pradesh',
-    companyPhone: '+91 863 224 7789',
-    companyEmail: 'support@reddyagromart.in',
-    gstNumber: 'Pending',
-    initials: 'SR',
-  },
-];
+const DetailItem = ({ label, value }: { label: string; value?: string | number | boolean | null }) => (
+  <div className="rounded-md border border-[var(--border)] bg-[var(--code-bg)] px-3 py-2">
+    <dt className="text-xs font-medium uppercase tracking-wide text-[var(--text)] opacity-80">{label}</dt>
+    <dd className="mt-1 break-words text-sm font-medium text-[var(--text-h)]">{valueOrDash(value)}</dd>
+  </div>
+);
+
+const UserTextField = ({
+  label,
+  name,
+  value,
+  onChange,
+}: {
+  label: string;
+  name: keyof Omit<UpdateUserPayload, 'is_admin'>;
+  value: string;
+  onChange: (name: keyof Omit<UpdateUserPayload, 'is_admin'>, value: string) => void;
+}) => (
+  <AppTextField
+    label={label}
+    type="text"
+    value={value}
+    onChange={(event) => onChange(name, event.target.value)}
+  />
+);
 
 const DealerManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [columnFilters, setColumnFilters] = useState<ColumnFilters>({
-    name: '',
-    userType: '',
-    phone: '',
-    registered: '',
-    companyName: '',
-    companyRegNumber: '',
-    companyAddress: '',
-    companyPhone: '',
-    companyEmail: '',
-    gstNumber: '',
-  });
+  const [activeTab, setActiveTab] = useState<'vendors' | 'customers'>('vendors');
+  const [users, setUsers] = useState<UserItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserDetails | null>(null);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [modalError, setModalError] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [form, setForm] = useState<UpdateUserPayload>(emptyForm);
+  const [saving, setSaving] = useState(false);
+  const [statusSaving, setStatusSaving] = useState(false);
+  const [actionMessage, setActionMessage] = useState('');
 
-  const updateColumnFilter = (field: keyof ColumnFilters, value: string) => {
-    setColumnFilters((currentFilters) => ({
-      ...currentFilters,
-      [field]: value,
-    }));
+  const loadUsers = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await userService.fetchUsers();
+      setUsers(res.items || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load users');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadUsers();
+  }, [loadUsers]);
+
+  const filtered = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    return users.filter((u) => {
+      const name = `${u.first_name || ''} ${u.last_name || ''}`.trim().toLowerCase();
+      return (
+        !q ||
+        name.includes(q) ||
+        (u.email || '').toLowerCase().includes(q) ||
+        (u.mobile_number || '').toLowerCase().includes(q) ||
+        (u.user_type || '').toLowerCase().includes(q)
+      );
+    });
+  }, [users, searchTerm]);
+
+  const vendors = filtered.filter((u) => u.user_type === 'vendor');
+  const customers = filtered.filter((u) => u.user_type === 'customer');
+
+  const openUser = async (u: UserItem) => {
+    setSelectedUserId(u.id);
+    setSelectedUser(null);
+    setIsEditing(false);
+    setForm(emptyForm);
+    setActionMessage('');
+    setModalError('');
+    setModalLoading(true);
+
+    try {
+      const user = await userService.fetchUser(u.id);
+      setSelectedUser(user);
+      setForm(getUserForm(user));
+    } catch (err) {
+      setModalError(err instanceof Error ? err.message : 'Failed to load user details');
+    } finally {
+      setModalLoading(false);
+    }
   };
 
-  const filteredUsers = useMemo(() => {
-    const normalizedSearch = searchTerm.trim().toLowerCase();
-    const normalizedColumnFilters = Object.fromEntries(
-      Object.entries(columnFilters).map(([key, value]) => [key, value.trim().toLowerCase()])
-    ) as ColumnFilters;
+  const closeModal = () => {
+    setSelectedUserId(null);
+    setSelectedUser(null);
+    setIsEditing(false);
+    setActionMessage('');
+    setModalError('');
+  };
 
-    return dealerUsers.filter((user) => {
-      const matchesSearch =
-        !normalizedSearch ||
-        [
-          user.name,
-          user.userType,
-          user.phone,
-          user.companyName,
-          user.companyRegNumber,
-          user.companyAddress,
-          user.companyPhone,
-          user.companyEmail,
-          user.gstNumber,
-          user.id,
-        ]
-          .join(' ')
-          .toLowerCase()
-          .includes(normalizedSearch);
+  const refreshSelectedUser = async (userId: number) => {
+    const user = await userService.fetchUser(userId);
+    setSelectedUser(user);
+    setForm(getUserForm(user));
+    await loadUsers();
+  };
 
-      const matchesStatus = statusFilter === 'all' || user.registered === statusFilter;
-      const matchesColumnFilters =
-        (!normalizedColumnFilters.name || user.name.toLowerCase().includes(normalizedColumnFilters.name)) &&
-        (!normalizedColumnFilters.userType || user.userType.toLowerCase() === normalizedColumnFilters.userType) &&
-        (!normalizedColumnFilters.phone || user.phone.toLowerCase().includes(normalizedColumnFilters.phone)) &&
-        (!normalizedColumnFilters.registered || user.registered.toLowerCase() === normalizedColumnFilters.registered) &&
-        (!normalizedColumnFilters.companyName ||
-          user.companyName.toLowerCase().includes(normalizedColumnFilters.companyName)) &&
-        (!normalizedColumnFilters.companyRegNumber ||
-          user.companyRegNumber.toLowerCase().includes(normalizedColumnFilters.companyRegNumber)) &&
-        (!normalizedColumnFilters.companyAddress ||
-          user.companyAddress.toLowerCase().includes(normalizedColumnFilters.companyAddress)) &&
-        (!normalizedColumnFilters.companyPhone ||
-          user.companyPhone.toLowerCase().includes(normalizedColumnFilters.companyPhone)) &&
-        (!normalizedColumnFilters.companyEmail ||
-          user.companyEmail.toLowerCase().includes(normalizedColumnFilters.companyEmail)) &&
-        (!normalizedColumnFilters.gstNumber || user.gstNumber.toLowerCase().includes(normalizedColumnFilters.gstNumber));
+  const handleFieldChange = (name: keyof Omit<UpdateUserPayload, 'is_admin'>, value: string) => {
+    setForm((current) => ({ ...current, [name]: value }));
+  };
 
-      return matchesSearch && matchesStatus && matchesColumnFilters;
-    });
-  }, [columnFilters, searchTerm, statusFilter]);
+  const handleSave = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!selectedUser) return;
 
-  const getStatusStyle = (status: RegistrationStatus) => {
-    return status === 'Yes'
-      ? 'bg-green-100 text-green-700 border border-green-200'
-      : 'bg-red-100 text-red-700 border border-red-200';
+    setSaving(true);
+    setActionMessage('');
+    setModalError('');
+    try {
+      const updated = await userService.updateUser(selectedUser.id, form);
+      setSelectedUser(updated);
+      setForm(getUserForm(updated));
+      setIsEditing(false);
+      setActionMessage('User details updated successfully');
+      await loadUsers();
+    } catch (err) {
+      setModalError(err instanceof Error ? err.message : 'Failed to update user');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleStatusChange = async (isActive: boolean) => {
+    if (!selectedUser) return;
+
+    setStatusSaving(true);
+    setActionMessage('');
+    setModalError('');
+    try {
+      await userService.updateUserStatus(selectedUser.id, { is_active: isActive });
+      await refreshSelectedUser(selectedUser.id);
+      setActionMessage(`User marked as ${isActive ? 'active' : 'inactive'}`);
+    } catch (err) {
+      setModalError(err instanceof Error ? err.message : 'Failed to update user status');
+    } finally {
+      setStatusSaving(false);
+    }
+  };
+
+  const handleVerify = async (userId: number, approve: boolean) => {
+    setActionMessage('');
+    setModalError('');
+    setStatusSaving(true);
+    try {
+      const res = await userService.verifyVendor(userId, approve);
+      setActionMessage('message' in res ? res.message : 'Vendor status updated successfully');
+      await refreshSelectedUser(userId);
+    } catch (err) {
+      setModalError(err instanceof Error ? err.message : 'Action failed');
+    } finally {
+      setStatusSaving(false);
+    }
   };
 
   return (
@@ -186,221 +216,296 @@ const DealerManagement = () => {
         <div className="min-w-0">
           <div className="flex items-center gap-3">
             <Users className="text-green-600 shrink-0" size={28} />
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Dealer Management</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Users Management</h1>
           </div>
-          <p className="text-gray-500">View, filter, and manage user and vendor information.</p>
+          <p className="text-gray-500">View, filter, and manage users and vendors.</p>
+          {error && <div className="text-sm text-red-600 mt-2">{error}</div>}
         </div>
       </div>
 
       <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex flex-col lg:flex-row gap-4 items-center justify-between">
         <div className="relative w-full lg:w-96">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-          <input
+          <AppTextField
             type="text"
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
             placeholder="Search users..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
+            sx={{ '& .MuiInputBase-input': { paddingLeft: '2.25rem' } }}
           />
         </div>
 
-        <select
-          value={statusFilter}
-          onChange={(event) => setStatusFilter(event.target.value)}
-          className="w-full lg:w-52 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
-        >
-          <option value="all">All users</option>
-          <option value="Yes">Registered: Yes</option>
-          <option value="No">Registered: No</option>
-        </select>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setActiveTab('vendors')}
+            className={`px-4 py-2 rounded ${activeTab === 'vendors' ? 'bg-green-600 text-white' : 'bg-white border'}`}
+          >
+            Vendors
+          </button>
+          <button
+            onClick={() => setActiveTab('customers')}
+            className={`px-4 py-2 rounded ${activeTab === 'customers' ? 'bg-green-600 text-white' : 'bg-white border'}`}
+          >
+            Customers
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1180px] text-left border-collapse text-xs">
-            <thead className="bg-gray-50 border-b border-gray-100">
+          <table className="w-full text-left border-collapse text-sm">
+            <thead className="bg-gray-50 border-b border-gray-100 text-xs">
               <tr>
-                <th className="px-4 py-2 font-semibold text-gray-600 align-bottom" rowSpan={2}>
-                  User Name
-                </th>
-                <th className="px-4 py-2 font-semibold text-gray-600 align-bottom" rowSpan={2}>
-                  User Type
-                </th>
-                <th className="px-4 py-2 font-semibold text-gray-600 align-bottom" rowSpan={2}>
-                  Mobile Number
-                </th>
-                <th className="px-4 py-2 font-semibold text-gray-600 align-bottom" rowSpan={2}>
-                  Registered
-                </th>
-                <th className="px-4 py-2 font-semibold text-gray-700 text-center border-l border-gray-100" colSpan={6}>
-                  Vendor Details
-                </th>
-              </tr>
-              <tr className="border-t border-gray-100">
-                <th className="px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500 border-l border-gray-100">
-                  Company Name
-                </th>
-                <th className="px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                  Company Reg Number
-                </th>
-                <th className="px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                  Company Address
-                </th>
-                <th className="px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                  Company Ph Number
-                </th>
-                <th className="px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                  Company E Mail
-                </th>
-                <th className="px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                  GST Number
-                </th>
-              </tr>
-              <tr className="border-t border-gray-100">
-                <th className="px-4 py-2">
-                  <input
-                    type="text"
-                    value={columnFilters.name}
-                    onChange={(event) => updateColumnFilter('name', event.target.value)}
-                    placeholder="Filter name"
-                    className="w-full min-w-32 rounded-md border border-gray-200 px-2 py-1 text-[11px] font-normal outline-none focus:ring-1 focus:ring-green-500"
-                  />
-                </th>
-                <th className="px-4 py-2">
-                  <select
-                    value={columnFilters.userType}
-                    onChange={(event) => updateColumnFilter('userType', event.target.value)}
-                    className="w-full min-w-28 rounded-md border border-gray-200 px-2 py-1 text-[11px] font-normal outline-none focus:ring-1 focus:ring-green-500"
-                  >
-                    <option value="">All</option>
-                    <option value="dealer">Dealer</option>
-                    <option value="vendor">Vendor</option>
-                    <option value="distributor">Distributor</option>
-                  </select>
-                </th>
-                <th className="px-4 py-2">
-                  <input
-                    type="text"
-                    value={columnFilters.phone}
-                    onChange={(event) => updateColumnFilter('phone', event.target.value)}
-                    placeholder="Filter mobile"
-                    className="w-full min-w-36 rounded-md border border-gray-200 px-2 py-1 text-[11px] font-normal outline-none focus:ring-1 focus:ring-green-500"
-                  />
-                </th>
-                <th className="px-4 py-2">
-                  <select
-                    value={columnFilters.registered}
-                    onChange={(event) => updateColumnFilter('registered', event.target.value)}
-                    className="w-full min-w-24 rounded-md border border-gray-200 px-2 py-1 text-[11px] font-normal outline-none focus:ring-1 focus:ring-green-500"
-                  >
-                    <option value="">All</option>
-                    <option value="yes">Yes</option>
-                    <option value="no">No</option>
-                  </select>
-                </th>
-                <th className="px-4 py-2 border-l border-gray-100">
-                  <input
-                    type="text"
-                    value={columnFilters.companyName}
-                    onChange={(event) => updateColumnFilter('companyName', event.target.value)}
-                    placeholder="Filter company"
-                    className="w-full min-w-36 rounded-md border border-gray-200 px-2 py-1 text-[11px] font-normal outline-none focus:ring-1 focus:ring-green-500"
-                  />
-                </th>
-                <th className="px-4 py-2">
-                  <input
-                    type="text"
-                    value={columnFilters.companyRegNumber}
-                    onChange={(event) => updateColumnFilter('companyRegNumber', event.target.value)}
-                    placeholder="Filter reg no"
-                    className="w-full min-w-36 rounded-md border border-gray-200 px-2 py-1 text-[11px] font-normal outline-none focus:ring-1 focus:ring-green-500"
-                  />
-                </th>
-                <th className="px-4 py-2">
-                  <input
-                    type="text"
-                    value={columnFilters.companyAddress}
-                    onChange={(event) => updateColumnFilter('companyAddress', event.target.value)}
-                    placeholder="Filter address"
-                    className="w-full min-w-48 rounded-md border border-gray-200 px-2 py-1 text-[11px] font-normal outline-none focus:ring-1 focus:ring-green-500"
-                  />
-                </th>
-                <th className="px-4 py-2">
-                  <input
-                    type="text"
-                    value={columnFilters.companyPhone}
-                    onChange={(event) => updateColumnFilter('companyPhone', event.target.value)}
-                    placeholder="Filter phone"
-                    className="w-full min-w-36 rounded-md border border-gray-200 px-2 py-1 text-[11px] font-normal outline-none focus:ring-1 focus:ring-green-500"
-                  />
-                </th>
-                <th className="px-4 py-2">
-                  <input
-                    type="text"
-                    value={columnFilters.companyEmail}
-                    onChange={(event) => updateColumnFilter('companyEmail', event.target.value)}
-                    placeholder="Filter email"
-                    className="w-full min-w-40 rounded-md border border-gray-200 px-2 py-1 text-[11px] font-normal outline-none focus:ring-1 focus:ring-green-500"
-                  />
-                </th>
-                <th className="px-4 py-2">
-                  <input
-                    type="text"
-                    value={columnFilters.gstNumber}
-                    onChange={(event) => updateColumnFilter('gstNumber', event.target.value)}
-                    placeholder="Filter GST"
-                    className="w-full min-w-36 rounded-md border border-gray-200 px-2 py-1 text-[11px] font-normal outline-none focus:ring-1 focus:ring-green-500"
-                  />
-                </th>
+                <th className="px-4 py-2">Name</th>
+                <th className="px-4 py-2">User Type</th>
+                <th className="px-4 py-2">Email</th>
+                <th className="px-4 py-2">Mobile</th>
+                <th className="px-4 py-2">Active</th>
+                <th className="px-4 py-2">Verified</th>
+                <th className="px-4 py-2">Vendor Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filteredUsers.map((user) => (
-                <tr key={user.id}>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[11px] font-bold">
-                        {user.initials}
-                      </div>
-                      <div>
-                        <p className="font-bold text-gray-900 whitespace-nowrap">{user.name}</p>
-                        <p className="text-xs text-gray-500">{user.id}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{user.userType}</td>
-                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{user.phone}</td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex min-w-12 justify-center px-3 py-1 rounded-full text-xs font-bold ${getStatusStyle(user.registered)}`}>
-                      {user.registered}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-gray-600 border-l border-gray-100 whitespace-nowrap">{user.companyName}</td>
-                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{user.companyRegNumber}</td>
-                  <td className="px-4 py-3 text-gray-600 min-w-64">{user.companyAddress}</td>
-                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{user.companyPhone}</td>
-                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{user.companyEmail}</td>
-                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{user.gstNumber}</td>
+              {(activeTab === 'vendors' ? vendors : customers).map((u) => (
+                <tr key={u.id} className="cursor-pointer hover:bg-gray-50" onClick={() => openUser(u)}>
+                  <td className="px-4 py-3">{`${u.first_name || ''} ${u.last_name || ''}`.trim()}</td>
+                  <td className="px-4 py-3">{u.user_type}</td>
+                  <td className="px-4 py-3">{u.email}</td>
+                  <td className="px-4 py-3">{u.mobile_number}</td>
+                  <td className="px-4 py-3">{u.is_active ? 'Yes' : 'No'}</td>
+                  <td className="px-4 py-3">{u.is_verified ? 'Yes' : 'No'}</td>
+                  <td className="px-4 py-3">{u.vendor_verification_status ?? '-'}</td>
                 </tr>
               ))}
 
-              {filteredUsers.length === 0 && (
+              {(activeTab === 'vendors' ? vendors : customers).length === 0 && (
                 <tr>
-                  <td className="px-4 py-8 text-center text-xs text-gray-500" colSpan={10}>
-                    No users found.
+                  <td className="px-4 py-8 text-center text-xs text-gray-500" colSpan={7}>
+                    {loading ? 'Loading...' : 'No users found.'}
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
-
-        <div className="p-4 border-t border-gray-100 bg-gray-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <p className="text-sm text-gray-500">
-            Showing {filteredUsers.length} of {dealerUsers.length} users
-          </p>
-        </div>
       </div>
+
+      {selectedUserId !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="max-h-[90vh] w-full max-w-4xl overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--widget-bg)] text-[var(--text)] shadow-xl">
+            <div className="flex items-start justify-between gap-4 border-b border-[var(--border)] px-5 py-4">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-lg font-semibold text-[var(--text-h)]">User Details</h3>
+                  {selectedUser && (
+                    <>
+                      <span className="rounded-full border border-[var(--accent-border)] bg-[var(--accent-bg)] px-2.5 py-1 text-xs font-semibold capitalize text-[var(--accent)]">
+                        {selectedUser.user_type}
+                      </span>
+                      <span className="rounded-full border border-[var(--border)] bg-[var(--code-bg)] px-2.5 py-1 text-xs font-semibold text-[var(--text-h)]">
+                        {selectedUser.is_active ? 'Active' : 'Inactive'}
+                      </span>
+                    </>
+                  )}
+                </div>
+                {selectedUser && (
+                  <p className="mt-1 text-sm text-[var(--text)]">
+                    {`${selectedUser.first_name || ''} ${selectedUser.last_name || ''}`.trim() || selectedUser.email}
+                  </p>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                {selectedUser && !isEditing && (
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(true)}
+                    className={primaryButtonClass}
+                  >
+                    <Pencil size={16} />
+                    Edit
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-[var(--border)] bg-[var(--widget-bg)] text-[var(--text)] transition-colors hover:bg-[var(--code-bg)]"
+                  aria-label="Close user details"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            <div className="max-h-[calc(90vh-73px)] overflow-y-auto px-5 py-5">
+              {modalLoading && (
+                <div className="flex min-h-64 items-center justify-center text-sm text-[var(--text)]">
+                  <Loader2 className="mr-2 animate-spin" size={18} />
+                  Loading user details...
+                </div>
+              )}
+
+              {modalError && (
+                <div className="mb-4 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
+                  {modalError}
+                </div>
+              )}
+
+              {selectedUser && !modalLoading && (
+                <>
+                  {isEditing ? (
+                    <form onSubmit={handleSave} className="space-y-5">
+                      <div>
+                        <h4 className="mb-3 text-sm font-semibold text-[var(--text-h)]">Editable information</h4>
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <UserTextField label="First name" name="first_name" value={form.first_name} onChange={handleFieldChange} />
+                          <UserTextField label="Last name" name="last_name" value={form.last_name} onChange={handleFieldChange} />
+                          <UserTextField label="Mobile number" name="mobile_number" value={form.mobile_number} onChange={handleFieldChange} />
+                          <UserTextField label="Zipcode" name="zipcode" value={form.zipcode} onChange={handleFieldChange} />
+                          <UserTextField label="City" name="city" value={form.city} onChange={handleFieldChange} />
+                          <UserTextField label="District" name="district" value={form.district} onChange={handleFieldChange} />
+                          <UserTextField label="State" name="state" value={form.state} onChange={handleFieldChange} />
+                          <label className="flex items-center gap-3 rounded-md border border-[var(--border)] bg-[var(--code-bg)] px-3 py-2 text-sm">
+                            <Checkbox
+                              checked={form.is_admin}
+                              onChange={(event) => setForm((current) => ({ ...current, is_admin: event.target.checked }))}
+                              sx={{
+                                color: 'var(--text)',
+                                padding: 0,
+                                '&.Mui-checked': { color: 'var(--common-btn-bg)' },
+                              }}
+                            />
+                            <span className="font-medium text-[var(--text-h)]">Admin user</span>
+                          </label>
+                          <div className="md:col-span-2">
+                            <UserTextField label="Address" name="address" value={form.address} onChange={handleFieldChange} />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap justify-end gap-2 border-t border-[var(--border)] pt-4">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setForm(getUserForm(selectedUser));
+                            setIsEditing(false);
+                          }}
+                          className={secondaryButtonClass}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={saving}
+                          className={primaryButtonClass}
+                        >
+                          {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+                          Save changes
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <div className="space-y-5">
+                      <section>
+                        <div className="mb-3 flex items-center gap-2">
+                          <UserCheck className="text-[var(--common-btn-bg)]" size={18} />
+                          <h4 className="text-sm font-semibold text-[var(--text-h)]">Profile</h4>
+                        </div>
+                        <dl className="grid gap-3 md:grid-cols-3">
+                          <DetailItem label="Email" value={selectedUser.email} />
+                          <DetailItem label="Mobile" value={selectedUser.mobile_number} />
+                          <DetailItem label="Verified" value={selectedUser.is_verified} />
+                          <DetailItem label="First name" value={selectedUser.first_name} />
+                          <DetailItem label="Last name" value={selectedUser.last_name} />
+                          <DetailItem label="User type" value={selectedUser.user_type} />
+                          <DetailItem label="Address" value={selectedUser.address} />
+                          <DetailItem label="Zipcode" value={selectedUser.zipcode} />
+                          <DetailItem label="City" value={selectedUser.city} />
+                          <DetailItem label="District" value={selectedUser.district} />
+                          <DetailItem label="State" value={selectedUser.state} />
+                          <DetailItem label="Admin" value={selectedUser.is_admin} />
+                          <DetailItem label="Superuser" value={selectedUser.is_superuser} />
+                          <DetailItem label="Vendor status" value={selectedUser.vendor_verification_status} />
+                        </dl>
+                      </section>
+
+                      {selectedUser.vendor && (
+                        <section>
+                          <div className="mb-3 flex items-center gap-2">
+                            <ShieldCheck className="text-[var(--common-btn-bg)]" size={18} />
+                            <h4 className="text-sm font-semibold text-[var(--text-h)]">Vendor company</h4>
+                          </div>
+                          <dl className="grid gap-3 md:grid-cols-3">
+                            <DetailItem label="Company name" value={selectedUser.vendor.company_name} />
+                            <DetailItem label="Registration no." value={selectedUser.vendor.company_registration_number} />
+                            <DetailItem label="GST number" value={selectedUser.vendor.gst_number} />
+                            <DetailItem label="Company phone" value={selectedUser.vendor.company_phone_number} />
+                            <DetailItem label="Company email" value={selectedUser.vendor.company_email} />
+                            <DetailItem label="Company address" value={selectedUser.vendor.company_address} />
+                          </dl>
+                        </section>
+                      )}
+
+                      <section className="rounded-md border border-[var(--border)] bg-[var(--code-bg)] p-4">
+                        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                          <div>
+                            <h4 className="text-sm font-semibold text-[var(--text-h)]">Account actions</h4>
+                            <p className="mt-1 text-xs text-[var(--text)]">Update status and vendor verification without leaving this modal.</p>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              disabled={statusSaving || selectedUser.is_active}
+                              onClick={() => handleStatusChange(true)}
+                              className={secondaryButtonClass}
+                            >
+                              <CheckCircle2 size={16} />
+                              Activate
+                            </button>
+                            <button
+                              type="button"
+                              disabled={statusSaving || !selectedUser.is_active}
+                              onClick={() => handleStatusChange(false)}
+                              className={secondaryButtonClass}
+                            >
+                              Deactivate
+                            </button>
+                            {selectedUser.user_type === 'vendor' && (
+                              <>
+                                <button
+                                  type="button"
+                                  disabled={statusSaving}
+                                  onClick={() => handleVerify(selectedUser.id, true)}
+                                  className={primaryButtonClass}
+                                >
+                                  Approve vendor
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={statusSaving}
+                                  onClick={() => handleVerify(selectedUser.id, false)}
+                                  className={secondaryButtonClass}
+                                >
+                                  Reject vendor
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </section>
+                    </div>
+                  )}
+
+                  {actionMessage && (
+                    <div className="mt-4 rounded-md border border-[var(--accent-border)] bg-[var(--accent-bg)] px-3 py-2 text-sm font-medium text-[var(--text-h)]">
+                      {actionMessage}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

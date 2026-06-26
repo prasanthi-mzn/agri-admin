@@ -15,7 +15,7 @@ export const SideMenu = () => {
     const menuItems = [
     { name: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
     { name: 'Inventory Management', path: '/inventory', icon: <Boxes size={20} /> },
-    { name: 'Dealer Management', path: '/dealers', icon: <Users size={20} /> },
+    { name: 'Users Management', path: '/dealers', icon: <Users size={20} /> },
     { name: 'Orders', path: '/orders', icon: <ShoppingCart size={20} /> },
     { name: 'Payment Processing', path: '/payments', icon: <CreditCard size={20} /> },
     { name: 'Dealer App Settings', path: '/dealer-app-settings', icon: <Settings size={20} /> },

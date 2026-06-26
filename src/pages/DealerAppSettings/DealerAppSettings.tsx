@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 import { Settings } from 'lucide-react';
+import FormControl from '@mui/material/FormControl';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Radio from '@mui/material/Radio';
+import RadioGroup from '@mui/material/RadioGroup';
 
 const DealerAppSettings = () => {
   const [selectedSeason, setSelectedSeason] = useState('spring');
@@ -13,7 +17,7 @@ const DealerAppSettings = () => {
     { value: 'winter', label: 'Winter', color: '#3b82f6' },
   ];
 
-  const handleApply = (e) => {
+  const handleApply = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsApplying(true);
     setMessage('');
@@ -40,31 +44,34 @@ const DealerAppSettings = () => {
           </div>
         )}
 
-        <div>
+        <FormControl fullWidth>
           <label className="block text-sm font-semibold text-gray-700 mb-4">Select Season-wise Theme</label>
-          <div className="space-y-3">
+          <RadioGroup value={selectedSeason} onChange={(e) => setSelectedSeason(e.target.value)}>
             {seasons.map((season) => (
-              <div key={season.value} className="flex items-center gap-3">
-                <input
-                  type="radio"
-                  id={season.value}
-                  name="season"
-                  value={season.value}
-                  checked={selectedSeason === season.value}
-                  onChange={(e) => setSelectedSeason(e.target.value)}
-                  className="w-4 h-4 cursor-pointer"
-                />
-                <label htmlFor={season.value} className="flex items-center gap-2 cursor-pointer">
-                  <div
-                    className="w-6 h-6 rounded-full border-2 border-gray-300"
-                    style={{ backgroundColor: season.color }}
-                  ></div>
-                  <span className="text-sm font-medium text-gray-700">{season.label}</span>
-                </label>
-              </div>
+              <FormControlLabel
+                key={season.value}
+                value={season.value}
+                control={
+                  <Radio
+                    sx={{
+                      color: 'var(--text)',
+                      '&.Mui-checked': { color: 'var(--common-btn-bg)' },
+                    }}
+                  />
+                }
+                label={
+                  <span className="flex items-center gap-2 cursor-pointer">
+                    <span
+                      className="w-6 h-6 rounded-full border-2 border-gray-300"
+                      style={{ backgroundColor: season.color }}
+                    />
+                    <span className="text-sm font-medium text-gray-700">{season.label}</span>
+                  </span>
+                }
+              />
             ))}
-          </div>
-        </div>
+          </RadioGroup>
+        </FormControl>
 
         <button
           type="submit"

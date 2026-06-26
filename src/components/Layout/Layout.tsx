@@ -11,7 +11,7 @@ import {
 import { SideMenu } from '../Sidemenu';
 import { ThemeSelector } from '../ThemeSelector';
 
-const Layout = () => {
+const Layout = ({ onLogout }: { onLogout?: () => void }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const getIsDesktop = () => window.innerWidth >= 1024;
   const [isDesktop, setIsDesktop] = useState(getIsDesktop);
@@ -91,8 +91,9 @@ const Layout = () => {
                   <Settings size={16} className="mr-3" /> Settings
                 </button>
                 <hr className="my-1" />
-                <button 
+                <button
                   onClick={() => {
+                    onLogout?.();
                     navigate('/login');
                   }}
                   className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
