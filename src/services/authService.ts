@@ -12,7 +12,7 @@ export async function login(email: string, password: string): Promise<LoginRespo
 
   const res = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json','ngrok-skip-browser-warning': 'true', },
     body: JSON.stringify({ email_id: email, password }),
   });
 
