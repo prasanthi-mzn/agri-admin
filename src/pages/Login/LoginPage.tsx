@@ -32,10 +32,11 @@ const LoginPage = ({ onLogin }: { onLogin?: () => void }) => {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-3 py-6 sm:px-4">
       <div className="max-w-sm w-full bg-white rounded-xl shadow-xl p-5 sm:p-6">
         <div className="text-center mb-8">
-          <img src={Logo} className="w-20 h-20 mx-auto" />
+          <img src={Logo} className="w-20 ,mx-auto" />
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="mb-4">
           <AppTextField
             label="Email Address"
             type="email"
@@ -44,7 +45,8 @@ const LoginPage = ({ onLogin }: { onLogin?: () => void }) => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-
+</div>
+<div className="mb-4">
           <AppTextField
             label="Password"
             type="password"
@@ -53,7 +55,7 @@ const LoginPage = ({ onLogin }: { onLogin?: () => void }) => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-
+</div>
           {error && <div className="text-red-600 text-xs bg-red-50 p-2.5 rounded-lg">{error}</div>}
 
           <button

@@ -157,8 +157,7 @@ export async function fetchSubCategories(): Promise<ProductSubCategory[]> {
   if (!res.ok) {
     const text = await res.text();
     throw new Error(text || 'Failed to fetch sub categories');
-  }
-
+  }  
   return normalizeCategories(await res.json()) as ProductSubCategory[];
 }
 

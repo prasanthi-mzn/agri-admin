@@ -89,16 +89,16 @@ const ResetPassword = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-3 py-6 sm:px-4">
       <div className="max-w-sm w-full bg-white rounded-xl shadow-xl p-5 sm:p-6">
         <div className="text-center mb-7">
-          <img src={Logo} alt="Logo" className="w-20 h-20 mx-auto" />
+          <img src={Logo} alt="Logo" className="w-20   mx-auto" />
           <h2 className="text-xl font-extrabold text-gray-900 mt-3">Reset Password</h2>
         </div>
 
         {step === 1 && (
           <form onSubmit={handleEmailSubmit} className="space-y-4">
-            <p className="text-xs text-gray-600 mb-4">
+            <p className="text-xs text-gray-600 mb-4" style={{ marginBottom:"10px" }}>
               Enter your email address and we'll send you an OTP to reset your password.
             </p>
-
+<div className="mb-4">
             <AppTextField
               label="Email Address"
               type="email"
@@ -107,7 +107,7 @@ const ResetPassword = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
-
+</div>
             {error && <div className="text-red-600 text-xs bg-red-50 p-2.5 rounded-lg">{error}</div>}
             {message && <div className="text-green-600 text-xs bg-green-50 p-2.5 rounded-lg">{message}</div>}
 
@@ -123,7 +123,7 @@ const ResetPassword = () => {
 
         {step === 2 && (
           <form onSubmit={handleOtpSubmit} className="space-y-4">
-            <p className="text-xs text-gray-600 mb-4">Enter the 6-digit OTP sent to your email.</p>
+            <p className="text-xs text-gray-600 mb-4" style={{ marginBottom:"10px" }}>Enter the 6-digit OTP sent to your email.</p>
 
             <AppTextField
               label="OTP"

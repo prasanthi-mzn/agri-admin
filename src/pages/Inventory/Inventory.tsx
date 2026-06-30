@@ -99,7 +99,7 @@ const formSubCategories = getSubCategories(subCategories, selectedCategory);
         productService.fetchProducts(),
         productService.fetchCategories(),
         productService.fetchSubCategories(),
-      ]);
+      ]); 
       setProducts(productResponse.data || []);
       setCategories(categoryResponse);
       setSubCategories(subCategoryResponse || []);
@@ -109,6 +109,7 @@ const formSubCategories = getSubCategories(subCategories, selectedCategory);
       setLoading(false);
     }
   }, []);
+  console.log("subCategories",subCategories)
 
   useEffect(() => {
     void loadInventory();
@@ -495,7 +496,7 @@ const formSubCategories = getSubCategories(subCategories, selectedCategory);
                 onChange={(event) => updateFormField('sub_category_id', event.target.value)}
               >
                 <MenuItem value="">Select sub category</MenuItem>
-                  {formSubCategories.map((subCategory) => (
+                  {subCategories.map((subCategory) => (
                     <MenuItem key={subCategory.id} value={String(subCategory.id)}>
                       {subCategory.name}
                     </MenuItem>

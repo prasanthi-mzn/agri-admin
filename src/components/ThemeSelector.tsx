@@ -23,11 +23,11 @@ export const ThemeSelector = () => {
           key={id}
           onClick={() => setTheme(id as typeof id)}
           title={label}
-          className={`rounded-md p-1.5 transition-all sm:p-2 ${
-            theme === id
-              ? isDarkMode ? 'bg-gray-600 shadow-md' : 'bg-white shadow-md'
-              : isDarkMode ? 'bg-transparent hover:bg-gray-600' : 'bg-transparent hover:bg-gray-200'
-          }`}
+        className={`rounded-md p-1.5 transition-all sm:p-2 border ${
+  theme === id 
+    ? 'bg-common-btn-bg text-white shadow-md border-transparent' 
+    : 'bg-white text-grey hover:bg-gray-100 border-gray-300'
+}`}
         >
           <Icon 
             size={16} 

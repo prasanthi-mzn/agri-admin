@@ -238,13 +238,13 @@ const DealerManagement = () => {
         <div className="flex gap-2">
           <button
             onClick={() => setActiveTab('vendors')}
-            className={`px-4 py-2 rounded ${activeTab === 'vendors' ? 'bg-green-600 text-white' : 'bg-white border'}`}
+            className={`px-4 py-2 rounded ${activeTab === 'vendors' ? 'bg-common-btn-bg text-white' : 'bg-white border'}`}
           >
             Vendors
           </button>
           <button
             onClick={() => setActiveTab('customers')}
-            className={`px-4 py-2 rounded ${activeTab === 'customers' ? 'bg-green-600 text-white' : 'bg-white border'}`}
+            className={`px-4 py-2 rounded ${activeTab === 'customers' ? 'bg-common-btn-bg text-white' : 'bg-white border'}`}
           >
             Customers
           </button>
@@ -267,7 +267,7 @@ const DealerManagement = () => {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {(activeTab === 'vendors' ? vendors : customers).map((u) => (
-                <tr key={u.id} className="cursor-pointer hover:bg-gray-50" onClick={() => openUser(u)}>
+                <tr key={u.id} className="cursor-pointer hover:bg-gray-50 transition-all duration-[300ms] ease-in-out hover:text-blue-600" onClick={() => openUser(u)}>
                   <td className="px-4 py-3">{`${u.first_name || ''} ${u.last_name || ''}`.trim()}</td>
                   <td className="px-4 py-3">{u.user_type}</td>
                   <td className="px-4 py-3">{u.email}</td>
