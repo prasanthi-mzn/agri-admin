@@ -157,8 +157,8 @@ const ResetPassword = () => {
 
         {step === 3 && (
           <form onSubmit={handlePasswordSubmit} className="space-y-4">
-            <p className="text-xs text-gray-600 mb-4">Enter your new password below.</p>
-
+            <p className="text-xs text-gray-600 mb-4" style={{marginBottom:"10px"}}>Enter your new password below.</p>
+ <div className="mb-4">
             <AppTextField
               label="New Password"
               type="password"
@@ -167,7 +167,8 @@ const ResetPassword = () => {
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
             />
-
+</div>
+ <div className="mb-4">
             <AppTextField
               label="Confirm Password"
               type="password"
@@ -176,7 +177,7 @@ const ResetPassword = () => {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
-
+</div>
             {error && <div className="text-red-600 text-xs bg-red-50 p-2.5 rounded-lg">{error}</div>}
             {message && <div className="text-green-600 text-xs bg-green-50 p-2.5 rounded-lg">{message}</div>}
 

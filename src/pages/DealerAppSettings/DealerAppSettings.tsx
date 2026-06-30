@@ -76,7 +76,7 @@ const DealerAppSettings = () => {
         <button
           type="submit"
           disabled={isApplying}
-          className="w-full mt-6 font-bold py-3 rounded-lg transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full mt-6 font-bold py-3 rounded-lg transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed bg-common-btn-bg hover:bg-common-btn-hover text-white"
         >
           {isApplying ? 'Applying...' : 'Apply'}
         </button>
