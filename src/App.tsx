@@ -2,6 +2,8 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useState } from 'react';
 import authService from './services/authService';
 import { ThemeProvider } from './context/ThemeContext';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Layout from './components/Layout/Layout';
 import LoginPage from './pages/Login/LoginPage';
 import ResetPassword from './pages/Login/ResetPassword';
@@ -11,6 +13,8 @@ import DealerManagement from './pages/DealerManagement/DealerManagement';
 import Orders from './pages/Orders/Orders';
 import Payments from './pages/Payments/Payments';
 import Inventory from './pages/Inventory/Inventory';
+import UsersFeedbacks from './pages/UsersFeedbacks/UsersFeedbacks';
+import ReportedErrors from './pages/ReportedErrors/ReportedErrors';
 import { HashRouter } from 'react-router-dom';
 
 function App() {
@@ -48,6 +52,8 @@ function App() {
             <Route path="dealers" element={<DealerManagement />} />
             <Route path="orders" element={<Orders />} />
             <Route path="payments" element={<Payments />} />
+            <Route path="users-feedbacks" element={<UsersFeedbacks />} />
+            <Route path="reported-errors" element={<ReportedErrors />} />
             <Route path="dealer-app-settings" element={<DealerAppSettings />} />
             {/* Add other sub-routes here */}
           </Route>
@@ -56,6 +62,7 @@ function App() {
           <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
       </HashRouter>
+      <ToastContainer position="top-right" autoClose={3000} />
     </ThemeProvider>
   );
 }

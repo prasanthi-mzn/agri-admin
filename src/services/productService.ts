@@ -3,9 +3,9 @@ export type ProductCategory = {
   name: string;
   description?: string;
   icon_url?: string;
-  sub_categories?: ProductCategory[];
-  subcategories?: ProductCategory[];
-  children?: ProductCategory[];
+  sub_categories?: ProductSubCategory[];
+  subcategories?: ProductSubCategory[];
+  children?: ProductSubCategory[];
 };
 
 export type ProductSubCategory = {
@@ -22,6 +22,8 @@ export type Product = {
   name: string;
   description: string;
   price: string | number;
+  vendor_price?: string | number;
+  quantity?: string | number;
   category: ProductCategory | null;
   sub_category: ProductSubCategory | null;
   created_at: string;
@@ -41,6 +43,8 @@ export type ProductPayload = {
   name: string;
   description: string;
   price: number;
+  vendor_price: number;
+  quantity: number;
 };
 
 export type ProductCategoryPayload = {

@@ -4,7 +4,9 @@
   Users, 
   ShoppingCart, 
   CreditCard,
-  Settings,  
+  Settings,
+  MessageSquareText,
+  CircleAlert,
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import Logo from '../assets/logo2.png'
@@ -18,6 +20,8 @@ export const SideMenu = () => {
     { name: 'Users Management', path: '/dealers', icon: <Users size={20} /> },
     { name: 'Orders', path: '/orders', icon: <ShoppingCart size={20} /> },
     { name: 'Payment Processing', path: '/payments', icon: <CreditCard size={20} /> },
+    { name: 'Users Feedback', path: '/users-feedbacks', icon: <MessageSquareText size={20} /> },
+    { name: 'Reported Errors', path: '/reported-errors', icon: <CircleAlert size={20} /> },
     { name: 'Dealer App Settings', path: '/dealer-app-settings', icon: <Settings size={20} /> },
   ];
 

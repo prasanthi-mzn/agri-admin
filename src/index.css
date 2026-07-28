@@ -577,6 +577,7 @@ html[data-theme="pink"] .menu-item-active {
 .sidemenu-container {
   width: 16rem; /* w-64 */
   height: 100%;
+  min-height: 0;
   background-color: var(--widget-bg);
   border-right: 1px solid var(--border);
   display: flex;
@@ -592,6 +593,7 @@ html[data-theme="pink"] .menu-item-active {
 
 .sidemenu-nav {
   flex: 1;
+  min-height: 0;
   padding: 0.25rem;
   space-y: 0.25rem;
   overflow-y: auto;
@@ -628,14 +630,23 @@ html[data-theme="pink"] .menu-item-active {
   flex-shrink: 0;
 }
 
+.menu-item-icon svg {
+  width: 1.0625rem;
+  height: 1.0625rem;
+}
+
 .menu-item-text {
-  font-size: 1rem;
+  font-size: 0.875rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .sidebar-container {
+  height: 100vh;
+  height: 100dvh;
+  flex-shrink: 0;
+  overflow: hidden;
   transition: all 0.3s ease-in-out;
 }
 
@@ -683,7 +694,7 @@ html[data-theme="pink"] .menu-item-active {
     height: 100vh;
     z-index: 40;
     transition: transform 0.3s ease-in-out;
-    overflow-y: auto;
+    overflow-y: hidden;
     overflow-x: hidden;
   }
 
@@ -734,7 +745,7 @@ html[data-theme="pink"] .menu-item-active {
   }
 
   .menu-item-text {
-    font-size: 1rem;
+    font-size: 0.875rem;
   }
 
   .header-responsive {
@@ -806,7 +817,7 @@ html[data-theme="pink"] .menu-item-active {
     width: 14rem;
     height: 100vh;
     z-index: 40;
-    overflow-y: auto;
+    overflow-y: hidden;
     overflow-x: hidden;
   }
 
@@ -904,7 +915,7 @@ html[data-theme="pink"] .menu-item-active {
   }
 
   .menu-item-text {
-    font-size: 1rem;
+    font-size: 0.875rem;
   }
 
   .header-responsive {
@@ -984,7 +995,8 @@ html[data-theme="pink"] .menu-item-active {
   .sidebar-container {
     position: static;
     width: 20rem;
-    height: calc(100vh - 4rem);
+    height: 100vh;
+    height: 100dvh;
     transform: none !important;
   }
 

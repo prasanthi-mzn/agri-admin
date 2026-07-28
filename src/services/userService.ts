@@ -51,12 +51,6 @@ export type UpdateUserPayload = {
   first_name: string;
   last_name: string;
   mobile_number: string;
-  address: string;
-  zipcode: string;
-  city: string;
-  district: string;
-  state: string;
-  is_admin: boolean;
 };
 
 const base = import.meta.env.VITE_API_BASE_URL as string;
@@ -130,11 +124,11 @@ export async function updateUserStatus(userId: number, payload: Partial<Pick<Use
 }
 
 export async function verifyVendor(userId: number, approve: boolean): Promise<UserDetails | { message: string }> {
-  const url = `${base}/admin/users/${userId}/status`;
+  const url = `${base}/admin/users/${userId}/verify-vendor`;
   const res = await fetch(url, {
     method: 'PATCH',
     headers: getHeaders(),
-    body: JSON.stringify({ vendor_verification_status: approve ? 'approved' : 'rejected' }),
+    body: JSON.stringify({ approved: approve, credit_limit: 0 }),
   });
 
   if (!res.ok) {

@@ -1,21 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, Loader2, Pencil, Save, Search, ShieldCheck, UserCheck, Users, X } from 'lucide-react';
-import Checkbox from '@mui/material/Checkbox';
+import { Loader2, Pencil, Save, Search, ShieldCheck, UserCheck, Users, X } from 'lucide-react';
+import { toast } from 'react-toastify';
 import AppTextField from '../../components/AppTextField';
 import userService from '../../services/userService';
-import type { FormEvent } from 'react';
+import type { FormEvent, MouseEvent } from 'react';
 import type { UpdateUserPayload, UserDetails, UserItem } from '../../services/userService';
 
 const emptyForm: UpdateUserPayload = {
   first_name: '',
   last_name: '',
   mobile_number: '',
-  address: '',
-  zipcode: '',
-  city: '',
-  district: '',
-  state: '',
-  is_admin: false,
 };
 
 const primaryButtonClass =
@@ -28,12 +22,6 @@ const getUserForm = (user: UserDetails): UpdateUserPayload => ({
   first_name: user.first_name || '',
   last_name: user.last_name || '',
   mobile_number: user.mobile_number || '',
-  address: user.address || '',
-  zipcode: user.zipcode || '',
-  city: user.city || '',
-  district: user.district || '',
-  state: user.state || '',
-  is_admin: Boolean(user.is_admin),
 });
 
 const valueOrDash = (value?: string | number | boolean | null) => {
@@ -49,6 +37,23 @@ const DetailItem = ({ label, value }: { label: string; value?: string | number |
   </div>
 );
 
+const VendorStatusBadge = ({ status }: { status?: string | null }) => {
+  if (!status) return <span>-</span>;
+
+  const normalizedStatus = status.toLowerCase();
+  const badgeClass = normalizedStatus === 'approved'
+    ? 'bg-green-100 text-green-700'
+    : normalizedStatus === 'rejected'
+    ? 'bg-red-100 text-red-700'
+    : 'bg-gray-100 text-gray-600';
+
+  return (
+    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${badgeClass}`}>
+      {status}
+    </span>
+  );
+};
+
 const UserTextField = ({
   label,
   name,
@@ -56,9 +61,9 @@ const UserTextField = ({
   onChange,
 }: {
   label: string;
-  name: keyof Omit<UpdateUserPayload, 'is_admin'>;
+  name: keyof UpdateUserPayload;
   value: string;
-  onChange: (name: keyof Omit<UpdateUserPayload, 'is_admin'>, value: string) => void;
+  onChange: (name: keyof UpdateUserPayload, value: string) => void;
 }) => (
   <AppTextField
     label={label}
@@ -82,7 +87,7 @@ const DealerManagement = () => {
   const [form, setForm] = useState<UpdateUserPayload>(emptyForm);
   const [saving, setSaving] = useState(false);
   const [statusSaving, setStatusSaving] = useState(false);
-  const [actionMessage, setActionMessage] = useState('');
+  const [tableStatusSavingId, setTableStatusSavingId] = useState<number | null>(null);
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
@@ -117,13 +122,13 @@ const DealerManagement = () => {
 
   const vendors = filtered.filter((u) => u.user_type === 'vendor');
   const customers = filtered.filter((u) => u.user_type === 'customer');
+  const visibleUsers = activeTab === 'vendors' ? vendors : customers;
 
   const openUser = async (u: UserItem) => {
     setSelectedUserId(u.id);
     setSelectedUser(null);
     setIsEditing(false);
     setForm(emptyForm);
-    setActionMessage('');
     setModalError('');
     setModalLoading(true);
 
@@ -142,18 +147,10 @@ const DealerManagement = () => {
     setSelectedUserId(null);
     setSelectedUser(null);
     setIsEditing(false);
-    setActionMessage('');
     setModalError('');
   };
 
-  const refreshSelectedUser = async (userId: number) => {
-    const user = await userService.fetchUser(userId);
-    setSelectedUser(user);
-    setForm(getUserForm(user));
-    await loadUsers();
-  };
-
-  const handleFieldChange = (name: keyof Omit<UpdateUserPayload, 'is_admin'>, value: string) => {
+  const handleFieldChange = (name: keyof UpdateUserPayload, value: string) => {
     setForm((current) => ({ ...current, [name]: value }));
   };
 
@@ -162,15 +159,12 @@ const DealerManagement = () => {
     if (!selectedUser) return;
 
     setSaving(true);
-    setActionMessage('');
     setModalError('');
     try {
-      const updated = await userService.updateUser(selectedUser.id, form);
-      setSelectedUser(updated);
-      setForm(getUserForm(updated));
-      setIsEditing(false);
-      setActionMessage('User details updated successfully');
+      await userService.updateUser(selectedUser.id, form);
       await loadUsers();
+      toast.success('User details updated successfully');
+      closeModal();
     } catch (err) {
       setModalError(err instanceof Error ? err.message : 'Failed to update user');
     } finally {
@@ -178,31 +172,37 @@ const DealerManagement = () => {
     }
   };
 
-  const handleStatusChange = async (isActive: boolean) => {
-    if (!selectedUser) return;
+  const handleTableStatusToggle = async (event: MouseEvent<HTMLButtonElement>, user: UserItem) => {
+    event.stopPropagation();
 
-    setStatusSaving(true);
-    setActionMessage('');
-    setModalError('');
+    const nextStatus = !user.is_active;
+    setTableStatusSavingId(user.id);
+    setError('');
+
     try {
-      await userService.updateUserStatus(selectedUser.id, { is_active: isActive });
-      await refreshSelectedUser(selectedUser.id);
-      setActionMessage(`User marked as ${isActive ? 'active' : 'inactive'}`);
+      await userService.updateUserStatus(user.id, { is_active: nextStatus });
+      setUsers((current) => current.map((item) => (
+        item.id === user.id ? { ...item, is_active: nextStatus } : item
+      )));
+      setSelectedUser((current) => (
+        current?.id === user.id ? { ...current, is_active: nextStatus } : current
+      ));
+      toast.success(`User ${nextStatus ? 'activated' : 'deactivated'} successfully`);
     } catch (err) {
-      setModalError(err instanceof Error ? err.message : 'Failed to update user status');
+      setError(err instanceof Error ? err.message : 'Failed to update user status');
     } finally {
-      setStatusSaving(false);
+      setTableStatusSavingId(null);
     }
   };
 
   const handleVerify = async (userId: number, approve: boolean) => {
-    setActionMessage('');
     setModalError('');
     setStatusSaving(true);
     try {
-      const res = await userService.verifyVendor(userId, approve);
-      setActionMessage('message' in res ? res.message : 'Vendor status updated successfully');
-      await refreshSelectedUser(userId);
+      await userService.verifyVendor(userId, approve);
+      await loadUsers();
+      toast.success(`Vendor ${approve ? 'approved' : 'rejected'} successfully`);
+      closeModal();
     } catch (err) {
       setModalError(err instanceof Error ? err.message : 'Action failed');
     } finally {
@@ -223,6 +223,37 @@ const DealerManagement = () => {
         </div>
       </div>
 
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 px-3">
+        <div role="tablist" className="flex flex-wrap items-end gap-1">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'vendors'}
+            onClick={() => setActiveTab('vendors')}
+            className={`px-4 py-3 text-sm font-semibold transition ${
+              activeTab === 'vendors'
+                ? 'border-b-2 border-[var(--common-btn-bg)] text-[var(--common-btn-bg)]'
+                : 'border-b-2 border-transparent text-gray-600 hover:text-[var(--common-btn-bg)]'
+            }`}
+          >
+            Vendors
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'customers'}
+            onClick={() => setActiveTab('customers')}
+            className={`px-4 py-3 text-sm font-semibold transition ${
+              activeTab === 'customers'
+                ? 'border-b-2 border-[var(--common-btn-bg)] text-[var(--common-btn-bg)]'
+                : 'border-b-2 border-transparent text-gray-600 hover:text-[var(--common-btn-bg)]'
+            }`}
+          >
+            Customers
+          </button>
+        </div>
+      </div>
+
       <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex flex-col lg:flex-row gap-4 items-center justify-between">
         <div className="relative w-full lg:w-96">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -234,53 +265,63 @@ const DealerManagement = () => {
             sx={{ '& .MuiInputBase-input': { paddingLeft: '2.25rem' } }}
           />
         </div>
-
-        <div className="flex gap-2">
-          <button
-            onClick={() => setActiveTab('vendors')}
-            className={`px-4 py-2 rounded ${activeTab === 'vendors' ? 'bg-common-btn-bg text-white' : 'bg-white border'}`}
-          >
-            Vendors
-          </button>
-          <button
-            onClick={() => setActiveTab('customers')}
-            className={`px-4 py-2 rounded ${activeTab === 'customers' ? 'bg-common-btn-bg text-white' : 'bg-white border'}`}
-          >
-            Customers
-          </button>
-        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-sm">
+          <table className="w-full text-left border-collapse text-[13px]">
             <thead className="bg-gray-50 border-b border-gray-100 text-xs">
               <tr>
                 <th className="px-4 py-2">Name</th>
                 <th className="px-4 py-2">User Type</th>
                 <th className="px-4 py-2">Email</th>
                 <th className="px-4 py-2">Mobile</th>
-                <th className="px-4 py-2">Active</th>
+                <th className="px-4 py-2">Status</th>
                 <th className="px-4 py-2">Verified</th>
-                <th className="px-4 py-2">Vendor Status</th>
+                {activeTab === 'vendors' && <th className="px-4 py-2">Vendor Status</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {(activeTab === 'vendors' ? vendors : customers).map((u) => (
+              {visibleUsers.map((u) => (
                 <tr key={u.id} className="cursor-pointer hover:bg-gray-50 transition-all duration-[300ms] ease-in-out hover:text-blue-600" onClick={() => openUser(u)}>
                   <td className="px-4 py-3">{`${u.first_name || ''} ${u.last_name || ''}`.trim()}</td>
                   <td className="px-4 py-3">{u.user_type}</td>
                   <td className="px-4 py-3">{u.email}</td>
                   <td className="px-4 py-3">{u.mobile_number}</td>
-                  <td className="px-4 py-3">{u.is_active ? 'Yes' : 'No'}</td>
+                  <td className="px-4 py-3">
+                    <button
+                      type="button"
+                      onClick={(event) => handleTableStatusToggle(event, u)}
+                      disabled={tableStatusSavingId === u.id}
+                      aria-pressed={u.is_active}
+                      className={`inline-flex min-w-24 items-center justify-between rounded-full border px-2 py-1 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${
+                        u.is_active
+                          ? 'border-green-200 bg-green-50 text-green-700'
+                          : 'border-gray-200 bg-gray-100 text-gray-600'
+                      }`}
+                    >
+                      <span>{u.is_active ? 'Active' : 'Inactive'}</span>
+                      <span
+                        className={`ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-white shadow-sm transition-transform ${
+                          u.is_active ? 'translate-x-0 text-green-600' : 'text-gray-400'
+                        }`}
+                      >
+                        {tableStatusSavingId === u.id ? <Loader2 className="animate-spin" size={12} /> : null}
+                      </span>
+                    </button>
+                  </td>
                   <td className="px-4 py-3">{u.is_verified ? 'Yes' : 'No'}</td>
-                  <td className="px-4 py-3">{u.vendor_verification_status ?? '-'}</td>
+                  {activeTab === 'vendors' && (
+                    <td className="px-4 py-3">
+                      <VendorStatusBadge status={u.vendor_verification_status} />
+                    </td>
+                  )}
                 </tr>
               ))}
 
-              {(activeTab === 'vendors' ? vendors : customers).length === 0 && (
+              {visibleUsers.length === 0 && (
                 <tr>
-                  <td className="px-4 py-8 text-center text-xs text-gray-500" colSpan={7}>
+                  <td className="px-4 py-8 text-center text-xs text-gray-500" colSpan={activeTab === 'vendors' ? 7 : 6}>
                     {loading ? 'Loading...' : 'No users found.'}
                   </td>
                 </tr>
@@ -360,25 +401,6 @@ const DealerManagement = () => {
                           <UserTextField label="First name" name="first_name" value={form.first_name} onChange={handleFieldChange} />
                           <UserTextField label="Last name" name="last_name" value={form.last_name} onChange={handleFieldChange} />
                           <UserTextField label="Mobile number" name="mobile_number" value={form.mobile_number} onChange={handleFieldChange} />
-                          <UserTextField label="Zipcode" name="zipcode" value={form.zipcode} onChange={handleFieldChange} />
-                          <UserTextField label="City" name="city" value={form.city} onChange={handleFieldChange} />
-                          <UserTextField label="District" name="district" value={form.district} onChange={handleFieldChange} />
-                          <UserTextField label="State" name="state" value={form.state} onChange={handleFieldChange} />
-                          <label className="flex items-center gap-3 rounded-md border border-[var(--border)] bg-[var(--code-bg)] px-3 py-2 text-sm">
-                            <Checkbox
-                              checked={form.is_admin}
-                              onChange={(event) => setForm((current) => ({ ...current, is_admin: event.target.checked }))}
-                              sx={{
-                                color: 'var(--text)',
-                                padding: 0,
-                                '&.Mui-checked': { color: 'var(--common-btn-bg)' },
-                              }}
-                            />
-                            <span className="font-medium text-[var(--text-h)]">Admin user</span>
-                          </label>
-                          <div className="md:col-span-2">
-                            <UserTextField label="Address" name="address" value={form.address} onChange={handleFieldChange} />
-                          </div>
                         </div>
                       </div>
 
@@ -417,13 +439,6 @@ const DealerManagement = () => {
                           <DetailItem label="First name" value={selectedUser.first_name} />
                           <DetailItem label="Last name" value={selectedUser.last_name} />
                           <DetailItem label="User type" value={selectedUser.user_type} />
-                          <DetailItem label="Address" value={selectedUser.address} />
-                          <DetailItem label="Zipcode" value={selectedUser.zipcode} />
-                          <DetailItem label="City" value={selectedUser.city} />
-                          <DetailItem label="District" value={selectedUser.district} />
-                          <DetailItem label="State" value={selectedUser.state} />
-                          <DetailItem label="Admin" value={selectedUser.is_admin} />
-                          <DetailItem label="Superuser" value={selectedUser.is_superuser} />
                           <DetailItem label="Vendor status" value={selectedUser.vendor_verification_status} />
                         </dl>
                       </section>
@@ -445,61 +460,37 @@ const DealerManagement = () => {
                         </section>
                       )}
 
-                      <section className="rounded-md border border-[var(--border)] bg-[var(--code-bg)] p-4">
-                        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                          <div>
-                            <h4 className="text-sm font-semibold text-[var(--text-h)]">Account actions</h4>
-                            <p className="mt-1 text-xs text-[var(--text)]">Update status and vendor verification without leaving this modal.</p>
+                      {selectedUser.user_type === 'vendor' && (
+                        <section className="rounded-md border border-[var(--border)] bg-[var(--code-bg)] p-4">
+                          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                            <div>
+                              <h4 className="text-sm font-semibold text-[var(--text-h)]">Account actions</h4>
+                              <p className="mt-1 text-xs text-[var(--text)]">Approve or reject this vendor without leaving this modal.</p>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              <button
+                                type="button"
+                                disabled={statusSaving}
+                                onClick={() => handleVerify(selectedUser.id, true)}
+                                className={primaryButtonClass}
+                              >
+                                Approve vendor
+                              </button>
+                              <button
+                                type="button"
+                                disabled={statusSaving}
+                                onClick={() => handleVerify(selectedUser.id, false)}
+                                className={secondaryButtonClass}
+                              >
+                                Reject vendor
+                              </button>
+                            </div>
                           </div>
-                          <div className="flex flex-wrap gap-2">
-                            <button
-                              type="button"
-                              disabled={statusSaving || selectedUser.is_active}
-                              onClick={() => handleStatusChange(true)}
-                              className={secondaryButtonClass}
-                            >
-                              <CheckCircle2 size={16} />
-                              Activate
-                            </button>
-                            <button
-                              type="button"
-                              disabled={statusSaving || !selectedUser.is_active}
-                              onClick={() => handleStatusChange(false)}
-                              className={secondaryButtonClass}
-                            >
-                              Deactivate
-                            </button>
-                            {selectedUser.user_type === 'vendor' && (
-                              <>
-                                <button
-                                  type="button"
-                                  disabled={statusSaving}
-                                  onClick={() => handleVerify(selectedUser.id, true)}
-                                  className={primaryButtonClass}
-                                >
-                                  Approve vendor
-                                </button>
-                                <button
-                                  type="button"
-                                  disabled={statusSaving}
-                                  onClick={() => handleVerify(selectedUser.id, false)}
-                                  className={secondaryButtonClass}
-                                >
-                                  Reject vendor
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </section>
+                        </section>
+                      )}
                     </div>
                   )}
 
-                  {actionMessage && (
-                    <div className="mt-4 rounded-md border border-[var(--accent-border)] bg-[var(--accent-bg)] px-3 py-2 text-sm font-medium text-[var(--text-h)]">
-                      {actionMessage}
-                    </div>
-                  )}
                 </>
               )}
             </div>

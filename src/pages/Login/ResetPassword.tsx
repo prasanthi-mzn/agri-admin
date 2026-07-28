@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import AppTextField from '../../components/AppTextField';
 import Logo from '../../assets/logo2.png';
 import authService from '../../services/authService';
@@ -12,14 +13,12 @@ const ResetPassword = () => {
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setMessage('');
 
     if (!email) {
       setError('Please enter your email address');
@@ -28,7 +27,7 @@ const ResetPassword = () => {
 
     try {
       const res = await authService.requestPasswordReset(email);
-      setMessage(res.message || 'OTP has been sent to your email address');
+      toast.success(res.message || 'OTP has been sent to your email address');
       if (res.otp) setOtp(res.otp);
       setStep(2);
     } catch (err) {
@@ -39,7 +38,6 @@ const ResetPassword = () => {
   const handleOtpSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setMessage('');
 
     if (!otp) {
       setError('Please enter the OTP');
@@ -47,7 +45,7 @@ const ResetPassword = () => {
     }
 
     if (otp.length === 6) {
-      setMessage('OTP verified. Please enter your new password.');
+      toast.success('OTP verified. Please enter your new password.');
       setStep(3);
     } else {
       setError('OTP must be 6 digits');
@@ -57,7 +55,6 @@ const ResetPassword = () => {
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setMessage('');
 
     if (!newPassword || !confirmPassword) {
       setError('Please fill in all password fields');
@@ -76,7 +73,7 @@ const ResetPassword = () => {
 
     try {
       const res = await authService.resetPasswordWithOtp(email, otp, newPassword);
-      setMessage(res.message || 'Password reset successful! Redirecting to login...');
+      toast.success(res.message || 'Password reset successful! Redirecting to login...');
       setTimeout(() => {
         navigate('/login');
       }, 1500);
@@ -109,7 +106,6 @@ const ResetPassword = () => {
             />
 </div>
             {error && <div className="text-red-600 text-xs bg-red-50 p-2.5 rounded-lg">{error}</div>}
-            {message && <div className="text-green-600 text-xs bg-green-50 p-2.5 rounded-lg">{message}</div>}
 
             <button type="submit" className="w-full bg-common-btn-bg hover:bg-common-btn-hover text-white text-sm font-bold py-2.5 rounded-lg transition-colors shadow-lg">
               Send OTP
@@ -143,7 +139,6 @@ const ResetPassword = () => {
             />
 
             {error && <div className="text-red-600 text-xs bg-red-50 p-2.5 rounded-lg">{error}</div>}
-            {message && <div className="text-green-600 text-xs bg-green-50 p-2.5 rounded-lg">{message}</div>}
 
             <button type="submit" className="w-full bg-common-btn-bg hover:bg-common-btn-hover text-white text-sm font-bold py-2.5 rounded-lg transition-colors shadow-lg">
               Verify OTP
@@ -179,7 +174,6 @@ const ResetPassword = () => {
             />
 </div>
             {error && <div className="text-red-600 text-xs bg-red-50 p-2.5 rounded-lg">{error}</div>}
-            {message && <div className="text-green-600 text-xs bg-green-50 p-2.5 rounded-lg">{message}</div>}
 
             <button type="submit" className="w-full bg-common-btn-bg hover:bg-common-btn-hover text-white text-sm font-bold py-2.5 rounded-lg transition-colors shadow-lg">
               Reset Password

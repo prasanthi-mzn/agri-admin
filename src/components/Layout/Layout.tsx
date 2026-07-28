@@ -37,7 +37,7 @@ const Layout = ({ onLogout }: { onLogout?: () => void }) => {
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-gray-100 responsive-layout">
+    <div className="flex h-screen max-h-screen overflow-hidden bg-gray-100 responsive-layout">
       {/* Sidebar */}
       <div
         className={`sidebar-container ${isSidebarOpen ? 'open' : 'closed'}`}
@@ -55,9 +55,9 @@ const Layout = ({ onLogout }: { onLogout?: () => void }) => {
       )}
 
       {/* Main Content Area */}
-      <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
+      <div className="flex h-full min-h-0 flex-1 min-w-0 flex-col overflow-hidden">
         {/* Header */}
-        <header className="min-h-16 bg-white border-b border-gray-200 flex items-center justify-between gap-3 px-3 sm:px-4 md:px-6 lg:px-8 header-responsive">
+        <header className="min-h-16 shrink-0 bg-white border-b border-gray-200 flex items-center justify-between gap-3 px-3 sm:px-4 md:px-6 lg:px-8 header-responsive">
           <div className="flex min-w-10 items-center gap-4">
             {/* Mobile Menu Toggle */}
             <button
@@ -106,9 +106,13 @@ const Layout = ({ onLogout }: { onLogout?: () => void }) => {
         </header>
 
         {/* Dynamic Page Content */}
-        <main className="flex-1 min-w-0 overflow-x-hidden overflow-y-auto p-3 sm:p-4 md:p-6 lg:p-8 main-content">
+        <main className="min-h-0 flex-1 min-w-0 overflow-x-hidden overflow-y-auto p-3 sm:p-4 md:p-6 lg:p-8 main-content">
           <Outlet />
         </main>
+
+        <footer className="shrink-0 border-t border-gray-200 bg-white px-4 py-1.5 text-center text-[10px] leading-4 text-[#485d86]" style={{color:"#485d86 !important"}}>
+          Designed and developed by Mizione Tech Private Limited
+        </footer>
       </div>
     </div>
   );

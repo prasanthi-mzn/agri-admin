@@ -4,10 +4,10 @@ import FormControl from '@mui/material/FormControl';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
+import { toast } from 'react-toastify';
 
 const DealerAppSettings = () => {
   const [selectedSeason, setSelectedSeason] = useState('spring');
-  const [message, setMessage] = useState('');
   const [isApplying, setIsApplying] = useState(false);
 
   const seasons = [
@@ -20,13 +20,11 @@ const DealerAppSettings = () => {
   const handleApply = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsApplying(true);
-    setMessage('');
 
     // Simulate API call
     setTimeout(() => {
       setIsApplying(false);
-      setMessage(`${selectedSeason.charAt(0).toUpperCase() + selectedSeason.slice(1)} theme applied successfully!`);
-      setTimeout(() => setMessage(''), 3000);
+      toast.success(`${selectedSeason.charAt(0).toUpperCase() + selectedSeason.slice(1)} theme applied successfully!`);
     }, 1500);
   };
 
@@ -38,12 +36,6 @@ const DealerAppSettings = () => {
       </div>
 
       <form onSubmit={handleApply} className="bg-white rounded-lg shadow-md p-4 sm:p-6 lg:p-8 w-full max-w-md">
-        {message && (
-          <div className="mb-6 bg-green-50 border border-green-200 text-green-700 p-4 rounded-lg">
-            {message}
-          </div>
-        )}
-
         <FormControl fullWidth>
           <label className="block text-sm font-semibold text-gray-700 mb-4">Select Season-wise Theme</label>
           <RadioGroup value={selectedSeason} onChange={(e) => setSelectedSeason(e.target.value)}>

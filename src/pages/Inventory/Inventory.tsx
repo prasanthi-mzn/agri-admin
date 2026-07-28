@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Edit, Loader2, MoreVertical, Plus, Search, Trash2, X } from 'lucide-react';
 import MenuItem from '@mui/material/MenuItem';
+import { toast } from 'react-toastify';
 import AppTextField from '../../components/AppTextField';
 import productService from '../../services/productService';
 import type {
@@ -15,6 +16,8 @@ type ProductForm = {
   name: string;
   description: string;
   price: string;
+  vendor_price: string;
+  quantity: string;
   category_id: string;
   sub_category_id: string;
 };
@@ -29,9 +32,13 @@ const initialForm: ProductForm = {
   name: '',
   description: '',
   price: '',
+  vendor_price: '',
+  quantity: '',
   category_id: '',
   sub_category_id: '',
 };
+
+const productsPerPage = 8;
 
 const formatPrice = (price: string | number) => {
   const value = Number(price);
@@ -47,14 +54,24 @@ const formatDate = (value: string) => {
 };
 
 const getSubCategories = (allSubCategories: ProductSubCategory[], category?: ProductCategory) => {
-  if (!category?.id) return [];
-  return allSubCategories.filter((sub) => Number(sub.category_id) === Number(category.id));
+  if (!category?.id) return allSubCategories;
+
+  const nestedSubCategories = category.sub_categories || category.subcategories || category.children || [];
+  if (nestedSubCategories.length > 0) return nestedSubCategories;
+
+  const linkedSubCategories = allSubCategories.filter((sub) => (
+    Number(sub.category_id) === Number(category.id) || Number(sub.category?.id) === Number(category.id)
+  ));
+
+  return linkedSubCategories.length > 0 ? linkedSubCategories : allSubCategories;
 };
 
 const toProductForm = (product: Product): ProductForm => ({
   name: product.name || '',
   description: product.description || '',
   price: String(product.price ?? ''),
+  vendor_price: String(product.vendor_price ?? ''),
+  quantity: String(product.quantity ?? ''),
   category_id: product.category?.id ? String(product.category.id) : '',
   sub_category_id: product.sub_category?.id ? String(product.sub_category.id) : '',
 });
@@ -65,6 +82,8 @@ const toPayload = (form: ProductForm): ProductPayload => ({
   name: form.name.trim(),
   description: form.description.trim(),
   price: Number(form.price),
+  vendor_price: Number(form.vendor_price),
+  quantity: Number(form.quantity),
 });
 
 const Inventory = () => {
@@ -82,15 +101,15 @@ const Inventory = () => {
   const [isCategoryFormOpen, setIsCategoryFormOpen] = useState(false);
   const [isSubCategoryFormOpen, setIsSubCategoryFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [productPage, setProductPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [actionMessage, setActionMessage] = useState('');
   const [savingCategory, setSavingCategory] = useState(false);
   const [savingSubCategory, setSavingSubCategory] = useState(false);
 
   const selectedCategory = categories.find((category) => String(category.id) === formData.category_id);
-const formSubCategories = getSubCategories(subCategories, selectedCategory);
+  const formSubCategories = getSubCategories(subCategories, selectedCategory);
 
   const loadInventory = useCallback(async () => {
     setError('');
@@ -124,6 +143,8 @@ const formSubCategories = getSubCategories(subCategories, selectedCategory);
         product.name,
         product.description,
         product.price,
+        product.vendor_price,
+        product.quantity,
         product.category?.name,
         product.sub_category?.name,
         product.id,
@@ -156,6 +177,20 @@ const formSubCategories = getSubCategories(subCategories, selectedCategory);
     );
   }, [subCategories, searchTerm]);
 
+  const totalProductPages = Math.max(1, Math.ceil(filteredProducts.length / productsPerPage));
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (productPage - 1) * productsPerPage;
+    return filteredProducts.slice(startIndex, startIndex + productsPerPage);
+  }, [filteredProducts, productPage]);
+
+  useEffect(() => {
+    setProductPage(1);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    setProductPage((currentPage) => Math.min(currentPage, totalProductPages));
+  }, [totalProductPages]);
+
   const updateFormField = (field: keyof ProductForm, value: string) => {
     setFormData((currentData) => ({
       ...currentData,
@@ -167,7 +202,6 @@ const formSubCategories = getSubCategories(subCategories, selectedCategory);
   const openCreateForm = () => {
     setEditingProductId(null);
     setFormData(initialForm);
-    setActionMessage('');
     setError('');
     setIsFormOpen(true);
   };
@@ -175,7 +209,6 @@ const formSubCategories = getSubCategories(subCategories, selectedCategory);
   const openEditForm = async (productId: number) => {
     setEditingProductId(productId);
     setFormData(initialForm);
-    setActionMessage('');
     setError('');
     setIsFormOpen(true);
     setSaving(true);
@@ -201,16 +234,15 @@ const formSubCategories = getSubCategories(subCategories, selectedCategory);
     event.preventDefault();
     setSaving(true);
     setError('');
-    setActionMessage('');
 
     try {
       const payload = toPayload(formData);
       if (editingProductId) {
         await productService.updateProduct(editingProductId, payload);
-        setActionMessage('Product updated successfully');
+        toast.success('Product updated successfully');
       } else {
         await productService.createProduct(payload);
-        setActionMessage('Product created successfully');
+        toast.success('Product created successfully');
       }
       closeForm();
       await loadInventory();
@@ -226,10 +258,9 @@ const formSubCategories = getSubCategories(subCategories, selectedCategory);
     if (!shouldDelete) return;
 
     setError('');
-    setActionMessage('');
     try {
       await productService.deleteProduct(product.id);
-      setActionMessage('Product deleted successfully');
+      toast.success('Product deleted successfully');
       await loadInventory();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete product');
@@ -244,7 +275,6 @@ const formSubCategories = getSubCategories(subCategories, selectedCategory);
       icon_url: category?.icon_url ?? '',
     });
     setError('');
-    setActionMessage('');
     setIsCategoryFormOpen(true);
   };
 
@@ -262,7 +292,6 @@ const formSubCategories = getSubCategories(subCategories, selectedCategory);
       icon_url: subCategory?.icon_url ?? '',
     });
     setError('');
-    setActionMessage('');
     setIsSubCategoryFormOpen(true);
   };
 
@@ -276,15 +305,14 @@ const formSubCategories = getSubCategories(subCategories, selectedCategory);
     event.preventDefault();
     setSavingCategory(true);
     setError('');
-    setActionMessage('');
 
     try {
       if (editingCategoryId) {
         await productService.updateCategory(editingCategoryId, categoryForm);
-        setActionMessage('Category updated successfully');
+        toast.success('Category updated successfully');
       } else {
         await productService.createCategory(categoryForm);
-        setActionMessage('Category created successfully');
+        toast.success('Category created successfully');
       }
       closeCategoryForm();
       setCategories(await productService.fetchCategories());
@@ -299,15 +327,14 @@ const formSubCategories = getSubCategories(subCategories, selectedCategory);
     event.preventDefault();
     setSavingSubCategory(true);
     setError('');
-    setActionMessage('');
 
     try {
       if (editingSubCategoryId) {
         await productService.updateSubCategory(editingSubCategoryId, subCategoryForm);
-        setActionMessage('Sub category updated successfully');
+        toast.success('Sub category updated successfully');
       } else {
         await productService.createSubCategory(subCategoryForm);
-        setActionMessage('Sub category created successfully');
+        toast.success('Sub category created successfully');
       }
       closeSubCategoryForm();
       setSubCategories(await productService.fetchSubCategories());
@@ -323,10 +350,9 @@ const formSubCategories = getSubCategories(subCategories, selectedCategory);
     if (!shouldDelete) return;
 
     setError('');
-    setActionMessage('');
     try {
       await productService.deleteCategory(category.id);
-      setActionMessage('Category deleted successfully');
+      toast.success('Category deleted successfully');
       setCategories(await productService.fetchCategories());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete category');
@@ -338,10 +364,9 @@ const formSubCategories = getSubCategories(subCategories, selectedCategory);
     if (!shouldDelete) return;
 
     setError('');
-    setActionMessage('');
     try {
       await productService.deleteSubCategory(subCategory.id);
-      setActionMessage('Sub category deleted successfully');
+      toast.success('Sub category deleted successfully');
       setSubCategories(await productService.fetchSubCategories());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete sub category');
@@ -366,7 +391,6 @@ const formSubCategories = getSubCategories(subCategories, selectedCategory);
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Inventory Management</h1>
             <p className="text-gray-500">Track and manage products, categories, and sub categories.</p>
             {error && <div className="mt-2 text-sm text-red-600">{error}</div>}
-            {actionMessage && <div className="mt-2 text-sm text-green-600">{actionMessage}</div>}
           </div>
         </div>
 
@@ -474,6 +498,24 @@ const formSubCategories = getSubCategories(subCategories, selectedCategory);
               />
 
               <AppTextField
+                label="Vendor Price"
+                required
+                type="number"
+                value={formData.vendor_price}
+                onChange={(event) => updateFormField('vendor_price', event.target.value)}
+                inputProps={{ min: 0, step: '0.01' }}
+              />
+
+              <AppTextField
+                label="Quantity"
+                required
+                type="number"
+                value={formData.quantity}
+                onChange={(event) => updateFormField('quantity', event.target.value)}
+                inputProps={{ min: 0, step: '1' }}
+              />
+
+              <AppTextField
                 select
                 required
                 label="Category"
@@ -496,7 +538,7 @@ const formSubCategories = getSubCategories(subCategories, selectedCategory);
                 onChange={(event) => updateFormField('sub_category_id', event.target.value)}
               >
                 <MenuItem value="">Select sub category</MenuItem>
-                  {subCategories.map((subCategory) => (
+                  {formSubCategories.map((subCategory) => (
                     <MenuItem key={subCategory.id} value={String(subCategory.id)}>
                       {subCategory.name}
                     </MenuItem>
@@ -673,28 +715,30 @@ const formSubCategories = getSubCategories(subCategories, selectedCategory);
         {activeTab === 'products' ? (
           <>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[980px] text-left border-collapse">
+              <table className="w-full min-w-[1080px] text-left border-collapse text-[13px]">
                 <thead className="bg-gray-50 border-b border-gray-100">
                   <tr>
                     <th className="px-6 py-4 text-sm font-semibold text-gray-600">Product</th>
                     <th className="px-6 py-4 text-sm font-semibold text-gray-600">Category</th>
                     <th className="px-6 py-4 text-sm font-semibold text-gray-600">Sub Category</th>
                     <th className="px-6 py-4 text-sm font-semibold text-gray-600">Price</th>
+                    <th className="px-6 py-4 text-sm font-semibold text-gray-600">Vendor Price</th>
+                    <th className="px-6 py-4 text-sm font-semibold text-gray-600">Quantity</th>
                     <th className="px-6 py-4 text-sm font-semibold text-gray-600">Created</th>
-                    <th className="px-6 py-4 text-sm font-semibold text-gray-600">Description</th>
+                    <th className="w-56 px-6 py-4 text-sm font-semibold text-gray-600">Description</th>
                     <th className="px-6 py-4 text-sm font-semibold text-gray-600 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {loading && (
                     <tr>
-                      <td className="px-6 py-8 text-center text-sm text-gray-500" colSpan={7}>
+                      <td className="px-6 py-8 text-center text-sm text-gray-500" colSpan={9}>
                         Loading products...
                       </td>
                     </tr>
                   )}
 
-                  {!loading && filteredProducts.map((item) => (
+                  {!loading && paginatedProducts.map((item) => (
                     <tr key={item.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
                         <div>
@@ -704,9 +748,13 @@ const formSubCategories = getSubCategories(subCategories, selectedCategory);
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{item.category?.name || '-'}</td>
                       <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{item.sub_category?.name || '-'}</td>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{formatPrice(item.price)}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{formatPrice(item.price)}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{formatPrice(item.vendor_price ?? '')}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{item.quantity ?? '-'}</td>
                       <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{formatDate(item.created_at)}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600 min-w-72">{item.description || '-'}</td>
+                      <td className="w-56 max-w-56 px-6 py-4 text-sm text-gray-600">
+                        <div className="truncate">{item.description || '-'}</div>
+                      </td>
                       <td className="px-6 py-4 text-right">
                         <div className="inline-flex items-center justify-end gap-1">
                           <button
@@ -720,7 +768,7 @@ const formSubCategories = getSubCategories(subCategories, selectedCategory);
                           <button
                             type="button"
                             onClick={() => handleDeleteProduct(item)}
-                            className="p-2 hover:bg-red-50 rounded-full text-gray-500 hover:text-red-600"
+                            className="p-2 hover:bg-red-50 rounded-full text-red-600"
                             aria-label={`Delete ${item.name}`}
                           >
                             <Trash2 size={17} />
@@ -733,7 +781,7 @@ const formSubCategories = getSubCategories(subCategories, selectedCategory);
 
                   {!loading && filteredProducts.length === 0 && (
                     <tr>
-                      <td className="px-6 py-8 text-center text-sm text-gray-500" colSpan={7}>
+                      <td className="px-6 py-8 text-center text-sm text-gray-500" colSpan={9}>
                         No products found.
                       </td>
                     </tr>
@@ -744,20 +792,36 @@ const formSubCategories = getSubCategories(subCategories, selectedCategory);
 
             <div className="p-4 border-t border-gray-100 bg-gray-50 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <p className="text-sm text-gray-500">
-                Showing {filteredProducts.length} of {products.length} products
+                Showing {filteredProducts.length === 0 ? 0 : (productPage - 1) * productsPerPage + 1}
+                {' - '}
+                {Math.min(productPage * productsPerPage, filteredProducts.length)} of {filteredProducts.length} products
               </p>
-              <div className="flex flex-wrap gap-2">
-                {categories.map((category) => (
-                  <span key={category.id} className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-600">
-                    {category.name}
-                  </span>
-                ))}
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  disabled={productPage === 1}
+                  onClick={() => setProductPage((currentPage) => Math.max(1, currentPage - 1))}
+                  className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Previous
+                </button>
+                <span className="text-xs font-semibold text-gray-500">
+                  Page {productPage} of {totalProductPages}
+                </span>
+                <button
+                  type="button"
+                  disabled={productPage === totalProductPages}
+                  onClick={() => setProductPage((currentPage) => Math.min(totalProductPages, currentPage + 1))}
+                  className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Next
+                </button>
               </div>
             </div>
           </>
         ) : activeTab === 'categories' ? (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[680px]">
+            <table className="w-full text-left border-collapse min-w-[680px] text-[13px]">
               <thead className="bg-gray-50 border-b border-gray-100 text-sm text-gray-600">
                 <tr>
                   <th className="px-6 py-4 font-semibold">Category</th>
@@ -813,7 +877,7 @@ const formSubCategories = getSubCategories(subCategories, selectedCategory);
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[680px]">
+            <table className="w-full text-left border-collapse min-w-[680px] text-[13px]">
               <thead className="bg-gray-50 border-b border-gray-100 text-sm text-gray-600">
                 <tr>
                   <th className="px-6 py-4 font-semibold">Sub Category</th>

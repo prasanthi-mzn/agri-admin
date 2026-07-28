@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import Logo from '../../assets/logo2.png';
 import authService from '../../services/authService';
 import AppTextField from '../../components/AppTextField';
@@ -20,6 +21,7 @@ const LoginPage = ({ onLogin }: { onLogin?: () => void }) => {
     try {
       await authService.login(email, password);
       onLogin?.();
+      toast.success('Signed in successfully');
       navigate('/');
     } catch (err) {
       setError(getErrorMessage(err, 'Login failed'));
