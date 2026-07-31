@@ -393,6 +393,26 @@ table tbody tr:hover td:first-child {
   background-color: color-mix(in srgb, var(--common-btn-bg) 70%, transparent) !important;
 }
 
+html[data-theme="pink"] table th,
+html[data-theme="pink"] table td {
+  color: #fff !important;
+}
+
+html[data-theme="pink"] table thead th {
+  color: #fff !important;
+  background-color: #2d1b3d !important;
+}
+
+html[data-theme="pink"] table tbody td:first-child {
+  color: #fff !important;
+  background-color: #2d1b3d !important;
+}
+
+html[data-theme="pink"] table tbody tr:hover td,
+html[data-theme="pink"] table tbody tr:hover td:first-child {
+  color: #fff !important;
+}
+
 /* Style any text content to ensure readability */
 html[data-theme="dark"] span,
 html[data-theme="dark"] div {

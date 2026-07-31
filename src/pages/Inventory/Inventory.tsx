@@ -776,7 +776,7 @@ const Inventory = () => {
               <table className="w-full min-w-[1080px] text-left border-collapse text-[13px]">
                 <thead className="bg-gray-50 border-b border-gray-100">
                   <tr>
-                    <th className="px-6 py-4 text-sm font-semibold text-gray-600">Product</th>
+                    <th className="w-44 px-6 py-4 text-sm font-semibold text-gray-600">Product</th>
                     <th className="px-6 py-4 text-sm font-semibold text-gray-600">Category</th>
                     <th className="px-6 py-4 text-sm font-semibold text-gray-600">Sub Category</th>
                     <th className="px-6 py-4 text-sm font-semibold text-gray-600">Price</th>
@@ -798,9 +798,9 @@ const Inventory = () => {
 
                   {!loading && paginatedProducts.map((item) => (
                     <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4">
+                      <td className="w-44 max-w-44 px-6 py-4">
                         <div>
-                          <p className="font-bold text-gray-900 whitespace-nowrap">{item.name}</p>
+                          <p className="truncate font-bold text-gray-900">{item.name}</p>
                           <p className="text-xs text-gray-500">#{item.id}</p>
                         </div>
                       </td>

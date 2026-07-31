@@ -6,16 +6,36 @@ type OrderStatus = 'confirmed' | 'pending';
 
 const formatAmount = (value?: string) => {
   if (value === undefined || value === null || value === '') return '-';
-  return value;
+  if (value.length > 15) return value;
+
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return value;
+
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 2,
+  }).format(amount);
 };
 
 const formatDate = (value?: string) => {
   if (!value) return '-';
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium' }).format(date);
+  return Number.isNaN(date.getTime())
+    ? value
+    : new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short' }).format(date);
 };
 
 const getOrderStatus = (order: ApiOrder): string => order.status || 'pending';
+
+const getStatusGroup = (status: string): OrderStatus => {
+  const normalizedStatus = status.toLowerCase();
+  return normalizedStatus.includes('pending') ? 'pending' : 'confirmed';
+};
+
+const formatStatus = (status: string) => {
+  return status.replace(/_/g, ' ');
+};
 
 const Orders = () => {
   const [activeTab, setActiveTab] = useState<OrderStatus>('confirmed');
@@ -32,7 +52,7 @@ const Orders = () => {
   }, []);
 
   const visibleOrders = useMemo(
-    () => orders.filter((order) => getOrderStatus(order).toLowerCase() === activeTab),
+    () => orders.filter((order) => getStatusGroup(getOrderStatus(order)) === activeTab),
     [activeTab, orders]
   );
 
@@ -90,6 +110,7 @@ const Orders = () => {
             <tbody className="divide-y divide-gray-100">
               {visibleOrders.map((order, index) => {
                 const status = getOrderStatus(order).toLowerCase();
+                const isPending = getStatusGroup(status) === 'pending';
                 return (
                 <tr key={order.id || index} className="hover:bg-gray-50">
                   <td className="whitespace-nowrap px-4 py-3 font-semibold text-gray-900">{order.id ?? '-'}</td>
@@ -97,12 +118,12 @@ const Orders = () => {
                   <td className="whitespace-nowrap px-4 py-3 text-gray-600">{order.total_quantity ?? '-'}</td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${
-                      status === 'confirmed'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-yellow-100 text-yellow-700'
+                      isPending
+                        ? 'bg-yellow-100 text-yellow-700'
+                        : 'bg-green-100 text-green-700'
                     }`}
                     >
-                      {status}
+                      {formatStatus(status)}
                     </span>
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-gray-600">{formatDate(order.payment_expires_at)}</td>
