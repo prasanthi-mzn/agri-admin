@@ -21,6 +21,8 @@ export type Product = {
   id: number;
   name: string;
   description: string;
+  image?: string;
+  image_url?: string;
   price: string | number;
   vendor_price?: string | number;
   quantity?: string | number;
@@ -42,6 +44,7 @@ export type ProductPayload = {
   sub_category_id: number;
   name: string;
   description: string;
+  image_url: string;
   price: number;
   vendor_price: number;
   quantity: number;

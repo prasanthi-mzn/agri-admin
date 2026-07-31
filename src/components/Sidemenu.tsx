@@ -4,11 +4,11 @@
   Users, 
   ShoppingCart, 
   CreditCard,
-  Settings,
   MessageSquareText,
-  CircleAlert,
+  PackageSearch,
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import type { CSSProperties } from 'react';
 import Logo from '../assets/logo2.png'
 
 export const SideMenu = () => {
@@ -19,10 +19,10 @@ export const SideMenu = () => {
     { name: 'Inventory Management', path: '/inventory', icon: <Boxes size={20} /> },
     { name: 'Users Management', path: '/dealers', icon: <Users size={20} /> },
     { name: 'Orders', path: '/orders', icon: <ShoppingCart size={20} /> },
-    { name: 'Payment Processing', path: '/payments', icon: <CreditCard size={20} /> },
+    { name: 'Credit Book', path: '/payments', icon: <CreditCard size={20} /> },
     { name: 'Users Feedback', path: '/users-feedbacks', icon: <MessageSquareText size={20} /> },
-    { name: 'Reported Errors', path: '/reported-errors', icon: <CircleAlert size={20} /> },
-    { name: 'Dealer App Settings', path: '/dealer-app-settings', icon: <Settings size={20} /> },
+    { name: 'Requested Product', path: '/reported-errors', icon: <PackageSearch size={20} /> },
+    // { name: 'Dealer App Settings', path: '/dealer-app-settings', icon: <Settings size={20} /> },
   ];
 
   const isActive = (path: string) => {
@@ -37,10 +37,19 @@ export const SideMenu = () => {
     const isMenuActive = isActive(path);
     
     if (isMenuActive) {
-      return `${baseClass} menu-item-active`;
+      return `${baseClass} menu-item-active bg-common-btn-bg text-white`;
     }
     
     return `${baseClass} menu-item-hover`;
+  };
+
+  const getMenuItemStyle = (path: string): CSSProperties | undefined => {
+    if (!isActive(path)) return undefined;
+
+    return {
+      backgroundColor: 'var(--common-btn-bg)',
+      color: '#fff',
+    };
   };
   
   return(
@@ -52,6 +61,7 @@ export const SideMenu = () => {
               key={item.name}
               to={item.path}
               className={getMenuItemClass(item.path)}
+              style={getMenuItemStyle(item.path)}
             >
               <span className="menu-item-content">
                 <span className="menu-item-icon">{item.icon}</span>

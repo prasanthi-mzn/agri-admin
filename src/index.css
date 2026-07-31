@@ -342,7 +342,7 @@ a {
 
 /* Default button styling - apply --text background and --widget-bg color */
 button:not(.menu-toggle):not(.user-button):not([class*="border"]):not([class*="bg-white"]):not([class*="text-"]) {
-  background-color: var(--text) !important;
+  background-color: var(--text);
   color: var(--widget-bg) !important;
 }
 
@@ -350,7 +350,7 @@ button:not(.menu-toggle):not(.user-button):not([class*="border"]):not([class*="b
 .rounded-lg:not(button),
 [class*="shadow"]:not(button),
 .bg-gray-50:not(button) {
-  background-color: var(--widget-bg) !important;
+  background-color: var(--widget-bg);
   color: var(--text) !important;
 }
 
@@ -362,6 +362,35 @@ button.bg-common-btn-bg {
 button.hover\:bg-common-btn-hover:hover {
   background-color: var(--common-btn-hover) !important;
   color: #fff !important;
+}
+
+table th,
+table td {
+  font-size: 13px !important;
+}
+
+table thead th:first-child,
+table tbody td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+
+table thead th:first-child {
+  background-color: #f9fafb;
+  z-index: 3;
+}
+
+table tbody td:first-child {
+  background-color: var(--widget-bg);
+}
+
+table tbody tr:hover td {
+  background-color: color-mix(in srgb, var(--common-btn-bg) 70%, transparent) !important;
+}
+
+table tbody tr:hover td:first-child {
+  background-color: color-mix(in srgb, var(--common-btn-bg) 70%, transparent) !important;
 }
 
 /* Style any text content to ensure readability */
@@ -497,12 +526,18 @@ html[data-theme="pink"] .bg-green-50 {
 }
 
 .menu-item-active {
-  background-color: #fff0e6;
-  color: #c9440a;
+  background-color: var(--common-btn-bg) !important;
+  color: #fff !important;
   font-weight: 600;
-  border-left: 3px solid #ea570c;
-  padding-left: 13px;
   transition: all 0.3s ease-in-out;
+}
+
+.menu-item-active,
+.menu-item-active .menu-item-content,
+.menu-item-active .menu-item-icon,
+.menu-item-active .menu-item-text,
+.menu-item-active svg {
+  color: #fff !important;
 }
 
 /* Dark Theme Menu Items */
@@ -519,11 +554,9 @@ html[data-theme="dark"] .menu-item-hover:hover {
 }
 
 html[data-theme="dark"] .menu-item-active {
-  background-color: #1e40af;
-  color: #dbeafe;
+  background-color: var(--common-btn-bg) !important;
+  color: #fff !important;
   font-weight: 600;
-  border-left: 3px solid #60a5fa;
-  padding-left: 13px;
   transition: all 0.3s ease-in-out;
 }
 
@@ -541,11 +574,9 @@ html[data-theme="neon"] .menu-item-hover:hover {
 }
 
 html[data-theme="neon"] .menu-item-active {
-  background-color: #000814;
-  color: #00ff00;
+  background-color: var(--common-btn-bg) !important;
+  color: #fff !important;
   font-weight: 600;
-  border-left: 3px solid #00ff88;
-  padding-left: 13px;
   transition: all 0.3s ease-in-out;
 }
 
@@ -563,11 +594,9 @@ html[data-theme="pink"] .menu-item-hover:hover {
 }
 
 html[data-theme="pink"] .menu-item-active {
-  background-color: #1a0a1f;
-  color: #ff1493;
+  background-color: var(--common-btn-bg) !important;
+  color: #fff !important;
   font-weight: 600;
-  border-left: 3px solid #d946a6;
-  padding-left: 13px;
   transition: all 0.3s ease-in-out;
 }
 
@@ -608,6 +637,8 @@ html[data-theme="pink"] .menu-item-active {
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  width: 100%;
+  box-sizing: border-box;
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
   transition: all 0.3s ease-in-out;

@@ -15,6 +15,7 @@ import type {
 type ProductForm = {
   name: string;
   description: string;
+  image: string;
   price: string;
   vendor_price: string;
   quantity: string;
@@ -31,6 +32,7 @@ type ManageItemForm = {
 const initialForm: ProductForm = {
   name: '',
   description: '',
+  image: '',
   price: '',
   vendor_price: '',
   quantity: '',
@@ -39,6 +41,7 @@ const initialForm: ProductForm = {
 };
 
 const productsPerPage = 8;
+const descriptionMaxLength = 500;
 
 const formatPrice = (price: string | number) => {
   const value = Number(price);
@@ -69,6 +72,7 @@ const getSubCategories = (allSubCategories: ProductSubCategory[], category?: Pro
 const toProductForm = (product: Product): ProductForm => ({
   name: product.name || '',
   description: product.description || '',
+  image: product.image_url || product.image || '',
   price: String(product.price ?? ''),
   vendor_price: String(product.vendor_price ?? ''),
   quantity: String(product.quantity ?? ''),
@@ -80,10 +84,18 @@ const toPayload = (form: ProductForm): ProductPayload => ({
   category_id: Number(form.category_id),
   sub_category_id: Number(form.sub_category_id),
   name: form.name.trim(),
-  description: form.description.trim(),
+  description: form.description.trim().slice(0, descriptionMaxLength),
+  image_url: form.image,
   price: Number(form.price),
   vendor_price: Number(form.vendor_price),
   quantity: Number(form.quantity),
+});
+
+const fileToBase64 = (file: File) => new Promise<string>((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onload = () => resolve(String(reader.result || ''));
+  reader.onerror = () => reject(new Error('Failed to read image file'));
+  reader.readAsDataURL(file);
 });
 
 const Inventory = () => {
@@ -199,6 +211,19 @@ const Inventory = () => {
     }));
   };
 
+  const handleImageChange = async (file?: File) => {
+    if (!file) {
+      updateFormField('image', '');
+      return;
+    }
+
+    try {
+      updateFormField('image', await fileToBase64(file));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to upload image');
+    }
+  };
+
   const openCreateForm = () => {
     setEditingProductId(null);
     setFormData(initialForm);
@@ -307,11 +332,15 @@ const Inventory = () => {
     setError('');
 
     try {
+      const payload = {
+        ...categoryForm,
+        description: categoryForm.description.trim().slice(0, descriptionMaxLength),
+      };
       if (editingCategoryId) {
-        await productService.updateCategory(editingCategoryId, categoryForm);
+        await productService.updateCategory(editingCategoryId, payload);
         toast.success('Category updated successfully');
       } else {
-        await productService.createCategory(categoryForm);
+        await productService.createCategory(payload);
         toast.success('Category created successfully');
       }
       closeCategoryForm();
@@ -329,11 +358,15 @@ const Inventory = () => {
     setError('');
 
     try {
+      const payload = {
+        ...subCategoryForm,
+        description: subCategoryForm.description.trim().slice(0, descriptionMaxLength),
+      };
       if (editingSubCategoryId) {
-        await productService.updateSubCategory(editingSubCategoryId, subCategoryForm);
+        await productService.updateSubCategory(editingSubCategoryId, payload);
         toast.success('Sub category updated successfully');
       } else {
-        await productService.createSubCategory(subCategoryForm);
+        await productService.createSubCategory(payload);
         toast.success('Sub category created successfully');
       }
       closeSubCategoryForm();
@@ -515,6 +548,28 @@ const Inventory = () => {
                 inputProps={{ min: 0, step: '1' }}
               />
 
+              <div className="md:col-span-2">
+                <label className="mb-1 block text-sm font-semibold text-gray-700">Product Image</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(event) => void handleImageChange(event.target.files?.[0])}
+                  className="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-600 file:mr-4 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-gray-700 hover:file:bg-gray-200"
+                />
+                {formData.image && (
+                  <div className="mt-2 flex items-center gap-3">
+                    <img src={formData.image} alt="Product preview" className="h-14 w-14 rounded-md border border-gray-200 object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => updateFormField('image', '')}
+                      className="rounded-md border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50"
+                    >
+                      Remove image
+                    </button>
+                  </div>
+                )}
+              </div>
+
               <AppTextField
                 select
                 required
@@ -553,6 +608,7 @@ const Inventory = () => {
                   minRows={4}
                   value={formData.description}
                   onChange={(event) => updateFormField('description', event.target.value)}
+                  inputProps={{ maxLength: descriptionMaxLength }}
                 />
               </div>
             </div>
@@ -611,6 +667,7 @@ const Inventory = () => {
                 minRows={3}
                 value={categoryForm.description}
                 onChange={(event) => setCategoryForm((prev) => ({ ...prev, description: event.target.value }))}
+                inputProps={{ maxLength: descriptionMaxLength }}
               />
               <AppTextField
                 label="Icon URL"
@@ -665,6 +722,7 @@ const Inventory = () => {
                 minRows={3}
                 value={subCategoryForm.description}
                 onChange={(event) => setSubCategoryForm((prev) => ({ ...prev, description: event.target.value }))}
+                inputProps={{ maxLength: descriptionMaxLength }}
               />
               <AppTextField
                 label="Icon URL"
