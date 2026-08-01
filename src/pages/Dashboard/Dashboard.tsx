@@ -20,9 +20,12 @@ import {
   Tooltip,
 } from 'chart.js';
 import { Bar, Line } from 'react-chartjs-2';
+import { Link } from 'react-router-dom';
 import dashboardService from '../../services/dashboardService';
+import orderService from '../../services/orderService';
 import productService from '../../services/productService';
 import type { DashboardResponse } from '../../services/dashboardService';
+import type { ApiOrder } from '../../services/orderService';
 import type { Product } from '../../services/productService';
 
 ChartJS.register(
@@ -41,16 +44,45 @@ const formatCount = (value?: number) => {
   return new Intl.NumberFormat('en-IN').format(value);
 };
 
+const formatAmount = (value?: string) => {
+  if (value === undefined || value === null || value === '') return '-';
+  if (value.length > 15) return value;
+
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return value;
+
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 2,
+  }).format(amount);
+};
+
+const formatDate = (value?: string) => {
+  if (!value) return '-';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? value
+    : new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium' }).format(date);
+};
+
+const formatStatus = (status?: string) => {
+  return (status || 'pending').replace(/_/g, ' ');
+};
+
 const salesLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
 const salesValues = [120000, 148000, 132000, 176000, 204000, 238000, 221000];
 
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
+  const [orders, setOrders] = useState<ApiOrder[]>([]);
   const [loadingDashboard, setLoadingDashboard] = useState(true);
   const [loadingProducts, setLoadingProducts] = useState(true);
+  const [loadingOrders, setLoadingOrders] = useState(true);
   const [dashboardError, setDashboardError] = useState('');
   const [productsError, setProductsError] = useState('');
+  const [ordersError, setOrdersError] = useState('');
 
   useEffect(() => {
     dashboardService
@@ -66,6 +98,14 @@ const Dashboard = () => {
       .then((response) => setProducts(response.data || []))
       .catch((err) => setProductsError(err instanceof Error ? err.message : 'Failed to load products'))
       .finally(() => setLoadingProducts(false));
+  }, []);
+
+  useEffect(() => {
+    orderService
+      .fetchOrders()
+      .then((items) => setOrders(items))
+      .catch((err) => setOrdersError(err instanceof Error ? err.message : 'Failed to load orders'))
+      .finally(() => setLoadingOrders(false));
   }, []);
 
   const salesChartData = useMemo(() => ({
@@ -149,20 +189,32 @@ const Dashboard = () => {
     },
   }), []);
 
+  const monthlyOrderCount = useMemo(() => {
+    const now = new Date();
+    return orders.filter((order) => {
+      if (!order.created_at) return false;
+      const createdAt = new Date(order.created_at);
+      return (
+        !Number.isNaN(createdAt.getTime()) &&
+        createdAt.getMonth() === now.getMonth() &&
+        createdAt.getFullYear() === now.getFullYear()
+      );
+    }).length;
+  }, [orders]);
+
   const stats = [
     { name: 'Total Vendors', value: loadingDashboard ? 'Loading...' : formatCount(dashboardData?.total_vendors), icon: <Users className="text-blue-600" />, change: '', positive: true },
     { name: 'Total Customers', value: loadingDashboard ? 'Loading...' : formatCount(dashboardData?.total_customers), icon: <UserRound className="text-teal-600" />, change: '', positive: true },
-    { name: 'Active Inventory', value: '43,520', icon: <Package className="text-green-600" />, change: '+3.4%', positive: true },
-    { name: 'Monthly Orders', value: '856', icon: <ShoppingBag className="text-orange-600" />, change: '-2.1%', positive: false },
-    { name: 'Revenue', value: 'Rs 4.2M', icon: <TrendingUp className="text-purple-600" />, change: '+18%', positive: true },
+    { name: 'Active Inventory', value: loadingProducts ? 'Loading...' : formatCount(products.length), icon: <Package className="text-green-600" />, change: '', positive: true },
+    { name: 'Monthly Orders', value: loadingOrders ? 'Loading...' : formatCount(monthlyOrderCount), icon: <ShoppingBag className="text-orange-600" />, change: '', positive: true },
+    { name: 'Revenue', value: 'Rs 4.2 Cr', icon: <TrendingUp className="text-purple-600" />, change: '+18%', positive: true },
   ];
 
-  const recentOrders = [
-    { id: '#ORD-7721', dealer: 'Green Valley Seeds', status: 'Delivered', amount: 'Rs 12,400' },
-    { id: '#ORD-7722', dealer: 'Kerala Agri-Co', status: 'Pending', amount: 'Rs 8,900' },
-    { id: '#ORD-7723', dealer: 'Nilgiri Farms', status: 'In Transit', amount: 'Rs 45,200' },
-    { id: '#ORD-7724', dealer: 'Coastal Fertilisers', status: 'Delivered', amount: 'Rs 3,150' },
-  ];
+  const recentOrders = useMemo(() => {
+    return [...orders]
+      .sort((a, b) => new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime())
+      .slice(0, 4);
+  }, [orders]);
 
   return (
     <div className="space-y-6 text-left">
@@ -206,29 +258,39 @@ const Dashboard = () => {
 
         <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100 min-w-0">
           <h3 className="text-lg font-bold text-gray-900 mb-4">Recent Orders</h3>
+          {ordersError && <div className="mb-3 text-sm text-red-600">{ordersError}</div>}
           <div className="space-y-4">
-            {recentOrders.map((order) => (
+            {loadingOrders ? (
+              <div className="flex min-h-48 items-center justify-center text-sm text-gray-500">Loading orders...</div>
+            ) : recentOrders.length > 0 ? recentOrders.map((order) => {
+              const status = formatStatus(order.status);
+              const isPending = status.toLowerCase().includes('pending');
+              return (
               <div key={order.id} className="flex items-center justify-between gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
                 <div className="min-w-0">
-                  <p className="text-sm font-bold text-gray-900">{order.dealer}</p>
-                  <p className="text-xs text-gray-500">{order.id}</p>
+                  <p className="text-sm font-bold text-gray-900">Order #{order.id}</p>
+                  <p className="text-xs text-gray-500">{formatDate(order.created_at)}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-bold text-gray-900">{order.amount}</p>
+                  <p className="max-w-32 truncate text-sm font-bold text-gray-900" title={formatAmount(order.total_amount)}>
+                    {formatAmount(order.total_amount)}
+                  </p>
                   <p className={`text-[10px] font-bold uppercase tracking-wider ${
-                    order.status === 'Delivered' ? 'text-green-600' :
-                    order.status === 'Pending' ? 'text-orange-500' : 'text-blue-500'
+                    isPending ? 'text-orange-500' : 'text-green-600'
                   }`}
                   >
-                    {order.status}
+                    {status}
                   </p>
                 </div>
               </div>
-            ))}
+              );
+            }) : (
+              <div className="flex min-h-48 items-center justify-center text-sm text-gray-500">No recent orders found.</div>
+            )}
           </div>
-          <button className="w-full mt-6 py-2 text-sm font-semibold text-green-600 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
+          <Link to="/orders" className="block w-full mt-6 py-2 text-center text-sm font-semibold text-green-600 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
             View All Orders
-          </button>
+          </Link>
         </div>
       </div>
 

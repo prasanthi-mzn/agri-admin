@@ -15,6 +15,7 @@ import Payments from './pages/Payments/Payments';
 import Inventory from './pages/Inventory/Inventory';
 import UsersFeedbacks from './pages/UsersFeedbacks/UsersFeedbacks';
 import ReportedErrors from './pages/ReportedErrors/ReportedErrors';
+import Reports from './pages/Reports/Reports';
 import { HashRouter } from 'react-router-dom';
 
 function App() {
@@ -52,6 +53,7 @@ function App() {
             <Route path="dealers" element={<DealerManagement />} />
             <Route path="orders" element={<Orders />} />
             <Route path="payments" element={<Payments />} />
+            <Route path="reports" element={<Reports />} />
             <Route path="users-feedbacks" element={<UsersFeedbacks />} />
             <Route path="reported-errors" element={<ReportedErrors />} />
             <Route path="dealer-app-settings" element={<DealerAppSettings />} />

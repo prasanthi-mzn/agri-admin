@@ -6,6 +6,7 @@
   CreditCard,
   MessageSquareText,
   PackageSearch,
+  ChartColumn,
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import type { CSSProperties } from 'react';
@@ -20,6 +21,7 @@ export const SideMenu = () => {
     { name: 'Users Management', path: '/dealers', icon: <Users size={20} /> },
     { name: 'Orders', path: '/orders', icon: <ShoppingCart size={20} /> },
     { name: 'Credit Book', path: '/payments', icon: <CreditCard size={20} /> },
+    { name: 'Reports', path: '/reports', icon: <ChartColumn size={20} /> },
     { name: 'Users Feedback', path: '/users-feedbacks', icon: <MessageSquareText size={20} /> },
     { name: 'Requested Product', path: '/reported-errors', icon: <PackageSearch size={20} /> },
     // { name: 'Dealer App Settings', path: '/dealer-app-settings', icon: <Settings size={20} /> },
